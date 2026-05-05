@@ -1,734 +1,192 @@
-[
-  {
-    "operation": "DELETE /authorizations/{authorizationKey}",
-    "sourceFile": "authorizations.yaml"
-  },
-  {
-    "operation": "DELETE /cluster-variables/global/{name}",
-    "sourceFile": "cluster-variables.yaml"
-  },
-  {
-    "operation": "DELETE /cluster-variables/tenants/{tenantId}/{name}",
-    "sourceFile": "cluster-variables.yaml"
-  },
-  {
-    "operation": "DELETE /documents/{documentId}",
-    "sourceFile": "documents.yaml"
-  },
-  {
-    "operation": "DELETE /global-task-listeners/{id}",
-    "sourceFile": "global-listeners.yaml"
-  },
-  {
-    "operation": "DELETE /groups/{groupId}",
-    "sourceFile": "groups.yaml"
-  },
-  {
-    "operation": "DELETE /groups/{groupId}/clients/{clientId}",
-    "sourceFile": "groups.yaml"
-  },
-  {
-    "operation": "DELETE /groups/{groupId}/mapping-rules/{mappingRuleId}",
-    "sourceFile": "groups.yaml"
-  },
-  {
-    "operation": "DELETE /groups/{groupId}/users/{username}",
-    "sourceFile": "groups.yaml"
-  },
-  {
-    "operation": "DELETE /mapping-rules/{mappingRuleId}",
-    "sourceFile": "mapping-rules.yaml"
-  },
-  {
-    "operation": "DELETE /roles/{roleId}",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "DELETE /roles/{roleId}/clients/{clientId}",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "DELETE /roles/{roleId}/groups/{groupId}",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "DELETE /roles/{roleId}/mapping-rules/{mappingRuleId}",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "DELETE /roles/{roleId}/users/{username}",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "DELETE /tenants/{tenantId}",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "DELETE /tenants/{tenantId}/clients/{clientId}",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "DELETE /tenants/{tenantId}/groups/{groupId}",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "DELETE /tenants/{tenantId}/mapping-rules/{mappingRuleId}",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "DELETE /tenants/{tenantId}/roles/{roleId}",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "DELETE /tenants/{tenantId}/users/{username}",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "DELETE /user-tasks/{userTaskKey}/assignee",
-    "sourceFile": "user-tasks.yaml"
-  },
-  {
-    "operation": "DELETE /users/{username}",
-    "sourceFile": "users.yaml"
-  },
-  {
-    "operation": "GET /audit-logs/{auditLogKey}",
-    "sourceFile": "audit-logs.yaml"
-  },
-  {
-    "operation": "GET /authentication/me",
-    "sourceFile": "authentication.yaml"
-  },
-  {
-    "operation": "GET /authorizations/{authorizationKey}",
-    "sourceFile": "authorizations.yaml"
-  },
-  {
-    "operation": "GET /batch-operations/{batchOperationKey}",
-    "sourceFile": "batch-operations.yaml"
-  },
-  {
-    "operation": "GET /cluster-variables/global/{name}",
-    "sourceFile": "cluster-variables.yaml"
-  },
-  {
-    "operation": "GET /cluster-variables/tenants/{tenantId}/{name}",
-    "sourceFile": "cluster-variables.yaml"
-  },
-  {
-    "operation": "GET /decision-definitions/{decisionDefinitionKey}",
-    "sourceFile": "decision-definitions.yaml"
-  },
-  {
-    "operation": "GET /decision-definitions/{decisionDefinitionKey}/xml",
-    "sourceFile": "decision-definitions.yaml"
-  },
-  {
-    "operation": "GET /decision-instances/{decisionEvaluationInstanceKey}",
-    "sourceFile": "decision-instances.yaml"
-  },
-  {
-    "operation": "GET /decision-requirements/{decisionRequirementsKey}",
-    "sourceFile": "decision-requirements.yaml"
-  },
-  {
-    "operation": "GET /decision-requirements/{decisionRequirementsKey}/xml",
-    "sourceFile": "decision-requirements.yaml"
-  },
-  {
-    "operation": "GET /documents/{documentId}",
-    "sourceFile": "documents.yaml"
-  },
-  {
-    "operation": "GET /element-instances/{elementInstanceKey}",
-    "sourceFile": "element-instances.yaml"
-  },
-  {
-    "operation": "GET /global-task-listeners/{id}",
-    "sourceFile": "global-listeners.yaml"
-  },
-  {
-    "operation": "GET /groups/{groupId}",
-    "sourceFile": "groups.yaml"
-  },
-  {
-    "operation": "GET /incidents/{incidentKey}",
-    "sourceFile": "incidents.yaml"
-  },
-  {
-    "operation": "GET /jobs/statistics/global",
-    "sourceFile": "job-metrics.yaml"
-  },
-  {
-    "operation": "GET /license",
-    "sourceFile": "licenses.yaml"
-  },
-  {
-    "operation": "GET /mapping-rules/{mappingRuleId}",
-    "sourceFile": "mapping-rules.yaml"
-  },
-  {
-    "operation": "GET /process-definitions/{processDefinitionKey}",
-    "sourceFile": "process-definitions.yaml"
-  },
-  {
-    "operation": "GET /process-definitions/{processDefinitionKey}/form",
-    "sourceFile": "process-definitions.yaml"
-  },
-  {
-    "operation": "GET /process-definitions/{processDefinitionKey}/xml",
-    "sourceFile": "process-definitions.yaml"
-  },
-  {
-    "operation": "GET /process-instances/{processInstanceKey}",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "GET /process-instances/{processInstanceKey}/call-hierarchy",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "GET /process-instances/{processInstanceKey}/sequence-flows",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "GET /process-instances/{processInstanceKey}/statistics/element-instances",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "GET /resources/{resourceKey}",
-    "sourceFile": "deployments.yaml"
-  },
-  {
-    "operation": "GET /resources/{resourceKey}/content",
-    "sourceFile": "deployments.yaml"
-  },
-  {
-    "operation": "GET /roles/{roleId}",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "GET /status",
-    "sourceFile": "cluster.yaml"
-  },
-  {
-    "operation": "GET /system/configuration",
-    "sourceFile": "system.yaml"
-  },
-  {
-    "operation": "GET /system/usage-metrics",
-    "sourceFile": "system.yaml"
-  },
-  {
-    "operation": "GET /tenants/{tenantId}",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "GET /topology",
-    "sourceFile": "cluster.yaml"
-  },
-  {
-    "operation": "GET /user-tasks/{userTaskKey}",
-    "sourceFile": "user-tasks.yaml"
-  },
-  {
-    "operation": "GET /user-tasks/{userTaskKey}/form",
-    "sourceFile": "user-tasks.yaml"
-  },
-  {
-    "operation": "GET /users/{username}",
-    "sourceFile": "users.yaml"
-  },
-  {
-    "operation": "GET /variables/{variableKey}",
-    "sourceFile": "variables.yaml"
-  },
-  {
-    "operation": "PATCH /jobs/{jobKey}",
-    "sourceFile": "jobs.yaml"
-  },
-  {
-    "operation": "PATCH /user-tasks/{userTaskKey}",
-    "sourceFile": "user-tasks.yaml"
-  },
-  {
-    "operation": "POST /audit-logs/search",
-    "sourceFile": "audit-logs.yaml"
-  },
-  {
-    "operation": "POST /authorizations",
-    "sourceFile": "authorizations.yaml"
-  },
-  {
-    "operation": "POST /authorizations/search",
-    "sourceFile": "authorizations.yaml"
-  },
-  {
-    "operation": "POST /batch-operation-items/search",
-    "sourceFile": "batch-operations.yaml"
-  },
-  {
-    "operation": "POST /batch-operations/{batchOperationKey}/cancellation",
-    "sourceFile": "batch-operations.yaml"
-  },
-  {
-    "operation": "POST /batch-operations/{batchOperationKey}/resumption",
-    "sourceFile": "batch-operations.yaml"
-  },
-  {
-    "operation": "POST /batch-operations/{batchOperationKey}/suspension",
-    "sourceFile": "batch-operations.yaml"
-  },
-  {
-    "operation": "POST /batch-operations/search",
-    "sourceFile": "batch-operations.yaml"
-  },
-  {
-    "operation": "POST /clock/reset",
-    "sourceFile": "clock.yaml"
-  },
-  {
-    "operation": "POST /cluster-variables/global",
-    "sourceFile": "cluster-variables.yaml"
-  },
-  {
-    "operation": "POST /cluster-variables/search",
-    "sourceFile": "cluster-variables.yaml"
-  },
-  {
-    "operation": "POST /cluster-variables/tenants/{tenantId}",
-    "sourceFile": "cluster-variables.yaml"
-  },
-  {
-    "operation": "POST /conditionals/evaluation",
-    "sourceFile": "conditionals.yaml"
-  },
-  {
-    "operation": "POST /correlated-message-subscriptions/search",
-    "sourceFile": "messages.yaml"
-  },
-  {
-    "operation": "POST /decision-definitions/evaluation",
-    "sourceFile": "decision-definitions.yaml"
-  },
-  {
-    "operation": "POST /decision-definitions/search",
-    "sourceFile": "decision-definitions.yaml"
-  },
-  {
-    "operation": "POST /decision-instances/{decisionEvaluationKey}/deletion",
-    "sourceFile": "decision-instances.yaml"
-  },
-  {
-    "operation": "POST /decision-instances/deletion",
-    "sourceFile": "decision-instances.yaml"
-  },
-  {
-    "operation": "POST /decision-instances/search",
-    "sourceFile": "decision-instances.yaml"
-  },
-  {
-    "operation": "POST /decision-requirements/search",
-    "sourceFile": "decision-requirements.yaml"
-  },
-  {
-    "operation": "POST /deployments",
-    "sourceFile": "deployments.yaml"
-  },
-  {
-    "operation": "POST /documents",
-    "sourceFile": "documents.yaml"
-  },
-  {
-    "operation": "POST /documents/{documentId}/links",
-    "sourceFile": "documents.yaml"
-  },
-  {
-    "operation": "POST /documents/batch",
-    "sourceFile": "documents.yaml"
-  },
-  {
-    "operation": "POST /element-instances/{elementInstanceKey}/incidents/search",
-    "sourceFile": "element-instances.yaml"
-  },
-  {
-    "operation": "POST /element-instances/ad-hoc-activities/{adHocSubProcessInstanceKey}/activation",
-    "sourceFile": "element-instances.yaml"
-  },
-  {
-    "operation": "POST /element-instances/search",
-    "sourceFile": "element-instances.yaml"
-  },
-  {
-    "operation": "POST /expression/evaluation",
-    "sourceFile": "expression.yaml"
-  },
-  {
-    "operation": "POST /global-task-listeners",
-    "sourceFile": "global-listeners.yaml"
-  },
-  {
-    "operation": "POST /global-task-listeners/search",
-    "sourceFile": "global-listeners.yaml"
-  },
-  {
-    "operation": "POST /groups",
-    "sourceFile": "groups.yaml"
-  },
-  {
-    "operation": "POST /groups/{groupId}/clients/search",
-    "sourceFile": "groups.yaml"
-  },
-  {
-    "operation": "POST /groups/{groupId}/mapping-rules/search",
-    "sourceFile": "groups.yaml"
-  },
-  {
-    "operation": "POST /groups/{groupId}/roles/search",
-    "sourceFile": "groups.yaml"
-  },
-  {
-    "operation": "POST /groups/{groupId}/users/search",
-    "sourceFile": "groups.yaml"
-  },
-  {
-    "operation": "POST /groups/search",
-    "sourceFile": "groups.yaml"
-  },
-  {
-    "operation": "POST /incidents/{incidentKey}/resolution",
-    "sourceFile": "incidents.yaml"
-  },
-  {
-    "operation": "POST /incidents/search",
-    "sourceFile": "incidents.yaml"
-  },
-  {
-    "operation": "POST /incidents/statistics/process-instances-by-definition",
-    "sourceFile": "incidents.yaml"
-  },
-  {
-    "operation": "POST /incidents/statistics/process-instances-by-error",
-    "sourceFile": "incidents.yaml"
-  },
-  {
-    "operation": "POST /jobs/{jobKey}/completion",
-    "sourceFile": "jobs.yaml"
-  },
-  {
-    "operation": "POST /jobs/{jobKey}/error",
-    "sourceFile": "jobs.yaml"
-  },
-  {
-    "operation": "POST /jobs/{jobKey}/failure",
-    "sourceFile": "jobs.yaml"
-  },
-  {
-    "operation": "POST /jobs/activation",
-    "sourceFile": "jobs.yaml"
-  },
-  {
-    "operation": "POST /jobs/search",
-    "sourceFile": "jobs.yaml"
-  },
-  {
-    "operation": "POST /jobs/statistics/by-types",
-    "sourceFile": "job-metrics.yaml"
-  },
-  {
-    "operation": "POST /jobs/statistics/by-workers",
-    "sourceFile": "job-metrics.yaml"
-  },
-  {
-    "operation": "POST /jobs/statistics/errors",
-    "sourceFile": "job-metrics.yaml"
-  },
-  {
-    "operation": "POST /jobs/statistics/time-series",
-    "sourceFile": "job-metrics.yaml"
-  },
-  {
-    "operation": "POST /mapping-rules",
-    "sourceFile": "mapping-rules.yaml"
-  },
-  {
-    "operation": "POST /mapping-rules/search",
-    "sourceFile": "mapping-rules.yaml"
-  },
-  {
-    "operation": "POST /message-subscriptions/search",
-    "sourceFile": "messages.yaml"
-  },
-  {
-    "operation": "POST /messages/correlation",
-    "sourceFile": "messages.yaml"
-  },
-  {
-    "operation": "POST /messages/publication",
-    "sourceFile": "messages.yaml"
-  },
-  {
-    "operation": "POST /process-definitions/{processDefinitionKey}/statistics/element-instances",
-    "sourceFile": "process-definitions.yaml"
-  },
-  {
-    "operation": "POST /process-definitions/search",
-    "sourceFile": "process-definitions.yaml"
-  },
-  {
-    "operation": "POST /process-definitions/statistics/message-subscriptions",
-    "sourceFile": "process-definitions.yaml"
-  },
-  {
-    "operation": "POST /process-definitions/statistics/process-instances",
-    "sourceFile": "process-definitions.yaml"
-  },
-  {
-    "operation": "POST /process-definitions/statistics/process-instances-by-version",
-    "sourceFile": "process-definitions.yaml"
-  },
-  {
-    "operation": "POST /process-instances",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "POST /process-instances/{processInstanceKey}/cancellation",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "POST /process-instances/{processInstanceKey}/deletion",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "POST /process-instances/{processInstanceKey}/incident-resolution",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "POST /process-instances/{processInstanceKey}/incidents/search",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "POST /process-instances/{processInstanceKey}/migration",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "POST /process-instances/{processInstanceKey}/modification",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "POST /process-instances/cancellation",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "POST /process-instances/deletion",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "POST /process-instances/incident-resolution",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "POST /process-instances/migration",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "POST /process-instances/modification",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "POST /process-instances/search",
-    "sourceFile": "process-instances.yaml"
-  },
-  {
-    "operation": "POST /resources/{resourceKey}/deletion",
-    "sourceFile": "deployments.yaml"
-  },
-  {
-    "operation": "POST /roles",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "POST /roles/{roleId}/clients/search",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "POST /roles/{roleId}/groups/search",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "POST /roles/{roleId}/mapping-rules/search",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "POST /roles/{roleId}/users/search",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "POST /roles/search",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "POST /setup/user",
-    "sourceFile": "setup.yaml"
-  },
-  {
-    "operation": "POST /signals/broadcast",
-    "sourceFile": "signals.yaml"
-  },
-  {
-    "operation": "POST /tenants",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "POST /tenants/{tenantId}/clients/search",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "POST /tenants/{tenantId}/groups/search",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "POST /tenants/{tenantId}/mapping-rules/search",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "POST /tenants/{tenantId}/roles/search",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "POST /tenants/{tenantId}/users/search",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "POST /tenants/search",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "POST /user-tasks/{userTaskKey}/assignment",
-    "sourceFile": "user-tasks.yaml"
-  },
-  {
-    "operation": "POST /user-tasks/{userTaskKey}/audit-logs/search",
-    "sourceFile": "user-tasks.yaml"
-  },
-  {
-    "operation": "POST /user-tasks/{userTaskKey}/completion",
-    "sourceFile": "user-tasks.yaml"
-  },
-  {
-    "operation": "POST /user-tasks/{userTaskKey}/effective-variables/search",
-    "sourceFile": "user-tasks.yaml"
-  },
-  {
-    "operation": "POST /user-tasks/{userTaskKey}/variables/search",
-    "sourceFile": "user-tasks.yaml"
-  },
-  {
-    "operation": "POST /user-tasks/search",
-    "sourceFile": "user-tasks.yaml"
-  },
-  {
-    "operation": "POST /users",
-    "sourceFile": "users.yaml"
-  },
-  {
-    "operation": "POST /users/search",
-    "sourceFile": "users.yaml"
-  },
-  {
-    "operation": "POST /variables/search",
-    "sourceFile": "variables.yaml"
-  },
-  {
-    "operation": "PUT /authorizations/{authorizationKey}",
-    "sourceFile": "authorizations.yaml"
-  },
-  {
-    "operation": "PUT /clock",
-    "sourceFile": "clock.yaml"
-  },
-  {
-    "operation": "PUT /cluster-variables/global/{name}",
-    "sourceFile": "cluster-variables.yaml"
-  },
-  {
-    "operation": "PUT /cluster-variables/tenants/{tenantId}/{name}",
-    "sourceFile": "cluster-variables.yaml"
-  },
-  {
-    "operation": "PUT /element-instances/{elementInstanceKey}/variables",
-    "sourceFile": "element-instances.yaml"
-  },
-  {
-    "operation": "PUT /global-task-listeners/{id}",
-    "sourceFile": "global-listeners.yaml"
-  },
-  {
-    "operation": "PUT /groups/{groupId}",
-    "sourceFile": "groups.yaml"
-  },
-  {
-    "operation": "PUT /groups/{groupId}/clients/{clientId}",
-    "sourceFile": "groups.yaml"
-  },
-  {
-    "operation": "PUT /groups/{groupId}/mapping-rules/{mappingRuleId}",
-    "sourceFile": "groups.yaml"
-  },
-  {
-    "operation": "PUT /groups/{groupId}/users/{username}",
-    "sourceFile": "groups.yaml"
-  },
-  {
-    "operation": "PUT /mapping-rules/{mappingRuleId}",
-    "sourceFile": "mapping-rules.yaml"
-  },
-  {
-    "operation": "PUT /roles/{roleId}",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "PUT /roles/{roleId}/clients/{clientId}",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "PUT /roles/{roleId}/groups/{groupId}",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "PUT /roles/{roleId}/mapping-rules/{mappingRuleId}",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "PUT /roles/{roleId}/users/{username}",
-    "sourceFile": "roles.yaml"
-  },
-  {
-    "operation": "PUT /tenants/{tenantId}",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "PUT /tenants/{tenantId}/clients/{clientId}",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "PUT /tenants/{tenantId}/groups/{groupId}",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "PUT /tenants/{tenantId}/mapping-rules/{mappingRuleId}",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "PUT /tenants/{tenantId}/roles/{roleId}",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "PUT /tenants/{tenantId}/users/{username}",
-    "sourceFile": "tenants.yaml"
-  },
-  {
-    "operation": "PUT /users/{username}",
-    "sourceFile": "users.yaml"
-  }
-]
+{
+  "POST /agent-instances": "agent-instances.yaml",
+  "GET /agent-instances/{agentInstanceKey}": "agent-instances.yaml",
+  "PATCH /agent-instances/{agentInstanceKey}": "agent-instances.yaml",
+  "POST /agent-instances/search": "agent-instances.yaml",
+  "GET /audit-logs/{auditLogKey}": "audit-logs.yaml",
+  "POST /audit-logs/search": "audit-logs.yaml",
+  "GET /authentication/me": "authentication.yaml",
+  "POST /authorizations": "authorizations.yaml",
+  "DELETE /authorizations/{authorizationKey}": "authorizations.yaml",
+  "GET /authorizations/{authorizationKey}": "authorizations.yaml",
+  "PUT /authorizations/{authorizationKey}": "authorizations.yaml",
+  "POST /authorizations/search": "authorizations.yaml",
+  "POST /batch-operation-items/search": "batch-operations.yaml",
+  "GET /batch-operations/{batchOperationKey}": "batch-operations.yaml",
+  "POST /batch-operations/{batchOperationKey}/cancellation": "batch-operations.yaml",
+  "POST /batch-operations/{batchOperationKey}/resumption": "batch-operations.yaml",
+  "POST /batch-operations/{batchOperationKey}/suspension": "batch-operations.yaml",
+  "POST /batch-operations/search": "batch-operations.yaml",
+  "PUT /clock": "clock.yaml",
+  "POST /clock/reset": "clock.yaml",
+  "POST /cluster-variables/global": "cluster-variables.yaml",
+  "DELETE /cluster-variables/global/{name}": "cluster-variables.yaml",
+  "GET /cluster-variables/global/{name}": "cluster-variables.yaml",
+  "PUT /cluster-variables/global/{name}": "cluster-variables.yaml",
+  "POST /cluster-variables/search": "cluster-variables.yaml",
+  "POST /cluster-variables/tenants/{tenantId}": "cluster-variables.yaml",
+  "DELETE /cluster-variables/tenants/{tenantId}/{name}": "cluster-variables.yaml",
+  "GET /cluster-variables/tenants/{tenantId}/{name}": "cluster-variables.yaml",
+  "PUT /cluster-variables/tenants/{tenantId}/{name}": "cluster-variables.yaml",
+  "POST /conditionals/evaluation": "conditionals.yaml",
+  "POST /correlated-message-subscriptions/search": "messages.yaml",
+  "GET /decision-definitions/{decisionDefinitionKey}": "decision-definitions.yaml",
+  "GET /decision-definitions/{decisionDefinitionKey}/xml": "decision-definitions.yaml",
+  "POST /decision-definitions/evaluation": "decision-definitions.yaml",
+  "POST /decision-definitions/search": "decision-definitions.yaml",
+  "GET /decision-instances/{decisionEvaluationInstanceKey}": "decision-instances.yaml",
+  "POST /decision-instances/{decisionEvaluationKey}/deletion": "decision-instances.yaml",
+  "POST /decision-instances/deletion": "decision-instances.yaml",
+  "POST /decision-instances/search": "decision-instances.yaml",
+  "GET /decision-requirements/{decisionRequirementsKey}": "decision-requirements.yaml",
+  "GET /decision-requirements/{decisionRequirementsKey}/xml": "decision-requirements.yaml",
+  "POST /decision-requirements/search": "decision-requirements.yaml",
+  "POST /deployments": "deployments.yaml",
+  "POST /documents": "documents.yaml",
+  "DELETE /documents/{documentId}": "documents.yaml",
+  "GET /documents/{documentId}": "documents.yaml",
+  "POST /documents/{documentId}/links": "documents.yaml",
+  "POST /documents/batch": "documents.yaml",
+  "GET /element-instances/{elementInstanceKey}": "element-instances.yaml",
+  "POST /element-instances/{elementInstanceKey}/incidents/search": "element-instances.yaml",
+  "PUT /element-instances/{elementInstanceKey}/variables": "element-instances.yaml",
+  "POST /element-instances/ad-hoc-activities/{adHocSubProcessInstanceKey}/activation": "element-instances.yaml",
+  "POST /element-instances/search": "element-instances.yaml",
+  "POST /expression/evaluation": "expression.yaml",
+  "GET /forms/{formKey}": "forms.yaml",
+  "POST /global-task-listeners": "global-listeners.yaml",
+  "DELETE /global-task-listeners/{id}": "global-listeners.yaml",
+  "GET /global-task-listeners/{id}": "global-listeners.yaml",
+  "PUT /global-task-listeners/{id}": "global-listeners.yaml",
+  "POST /global-task-listeners/search": "global-listeners.yaml",
+  "POST /groups": "groups.yaml",
+  "DELETE /groups/{groupId}": "groups.yaml",
+  "GET /groups/{groupId}": "groups.yaml",
+  "PUT /groups/{groupId}": "groups.yaml",
+  "DELETE /groups/{groupId}/clients/{clientId}": "groups.yaml",
+  "PUT /groups/{groupId}/clients/{clientId}": "groups.yaml",
+  "POST /groups/{groupId}/clients/search": "groups.yaml",
+  "DELETE /groups/{groupId}/mapping-rules/{mappingRuleId}": "groups.yaml",
+  "PUT /groups/{groupId}/mapping-rules/{mappingRuleId}": "groups.yaml",
+  "POST /groups/{groupId}/mapping-rules/search": "groups.yaml",
+  "POST /groups/{groupId}/roles/search": "groups.yaml",
+  "DELETE /groups/{groupId}/users/{username}": "groups.yaml",
+  "PUT /groups/{groupId}/users/{username}": "groups.yaml",
+  "POST /groups/{groupId}/users/search": "groups.yaml",
+  "POST /groups/search": "groups.yaml",
+  "GET /incidents/{incidentKey}": "incidents.yaml",
+  "POST /incidents/{incidentKey}/resolution": "incidents.yaml",
+  "POST /incidents/search": "incidents.yaml",
+  "POST /incidents/statistics/process-instances-by-definition": "incidents.yaml",
+  "POST /incidents/statistics/process-instances-by-error": "incidents.yaml",
+  "PATCH /jobs/{jobKey}": "jobs.yaml",
+  "POST /jobs/{jobKey}/completion": "jobs.yaml",
+  "POST /jobs/{jobKey}/error": "jobs.yaml",
+  "POST /jobs/{jobKey}/failure": "jobs.yaml",
+  "POST /jobs/activation": "jobs.yaml",
+  "POST /jobs/search": "jobs.yaml",
+  "POST /jobs/statistics/by-types": "job-metrics.yaml",
+  "POST /jobs/statistics/by-workers": "job-metrics.yaml",
+  "POST /jobs/statistics/errors": "job-metrics.yaml",
+  "GET /jobs/statistics/global": "job-metrics.yaml",
+  "POST /jobs/statistics/time-series": "job-metrics.yaml",
+  "GET /license": "licenses.yaml",
+  "POST /mapping-rules": "mapping-rules.yaml",
+  "DELETE /mapping-rules/{mappingRuleId}": "mapping-rules.yaml",
+  "GET /mapping-rules/{mappingRuleId}": "mapping-rules.yaml",
+  "PUT /mapping-rules/{mappingRuleId}": "mapping-rules.yaml",
+  "POST /mapping-rules/search": "mapping-rules.yaml",
+  "POST /message-subscriptions/search": "messages.yaml",
+  "POST /messages/correlation": "messages.yaml",
+  "POST /messages/publication": "messages.yaml",
+  "GET /process-definitions/{processDefinitionKey}": "process-definitions.yaml",
+  "GET /process-definitions/{processDefinitionKey}/form": "process-definitions.yaml",
+  "POST /process-definitions/{processDefinitionKey}/statistics/element-instances": "process-definitions.yaml",
+  "GET /process-definitions/{processDefinitionKey}/xml": "process-definitions.yaml",
+  "POST /process-definitions/search": "process-definitions.yaml",
+  "POST /process-definitions/statistics/message-subscriptions": "process-definitions.yaml",
+  "POST /process-definitions/statistics/process-instances": "process-definitions.yaml",
+  "POST /process-definitions/statistics/process-instances-by-version": "process-definitions.yaml",
+  "POST /process-instances": "process-instances.yaml",
+  "GET /process-instances/{processInstanceKey}": "process-instances.yaml",
+  "GET /process-instances/{processInstanceKey}/call-hierarchy": "process-instances.yaml",
+  "POST /process-instances/{processInstanceKey}/cancellation": "process-instances.yaml",
+  "POST /process-instances/{processInstanceKey}/deletion": "process-instances.yaml",
+  "POST /process-instances/{processInstanceKey}/incident-resolution": "process-instances.yaml",
+  "POST /process-instances/{processInstanceKey}/incidents/search": "process-instances.yaml",
+  "POST /process-instances/{processInstanceKey}/migration": "process-instances.yaml",
+  "POST /process-instances/{processInstanceKey}/modification": "process-instances.yaml",
+  "GET /process-instances/{processInstanceKey}/sequence-flows": "process-instances.yaml",
+  "GET /process-instances/{processInstanceKey}/statistics/element-instances": "process-instances.yaml",
+  "POST /process-instances/cancellation": "process-instances.yaml",
+  "POST /process-instances/deletion": "process-instances.yaml",
+  "POST /process-instances/incident-resolution": "process-instances.yaml",
+  "POST /process-instances/migration": "process-instances.yaml",
+  "POST /process-instances/modification": "process-instances.yaml",
+  "POST /process-instances/search": "process-instances.yaml",
+  "GET /resources/{resourceKey}": "deployments.yaml",
+  "GET /resources/{resourceKey}/content": "deployments.yaml",
+  "GET /resources/{resourceKey}/content/binary": "deployments.yaml",
+  "POST /resources/{resourceKey}/deletion": "deployments.yaml",
+  "POST /resources/search": "deployments.yaml",
+  "POST /roles": "roles.yaml",
+  "DELETE /roles/{roleId}": "roles.yaml",
+  "GET /roles/{roleId}": "roles.yaml",
+  "PUT /roles/{roleId}": "roles.yaml",
+  "DELETE /roles/{roleId}/clients/{clientId}": "roles.yaml",
+  "PUT /roles/{roleId}/clients/{clientId}": "roles.yaml",
+  "POST /roles/{roleId}/clients/search": "roles.yaml",
+  "DELETE /roles/{roleId}/groups/{groupId}": "roles.yaml",
+  "PUT /roles/{roleId}/groups/{groupId}": "roles.yaml",
+  "POST /roles/{roleId}/groups/search": "roles.yaml",
+  "DELETE /roles/{roleId}/mapping-rules/{mappingRuleId}": "roles.yaml",
+  "PUT /roles/{roleId}/mapping-rules/{mappingRuleId}": "roles.yaml",
+  "POST /roles/{roleId}/mapping-rules/search": "roles.yaml",
+  "DELETE /roles/{roleId}/users/{username}": "roles.yaml",
+  "PUT /roles/{roleId}/users/{username}": "roles.yaml",
+  "POST /roles/{roleId}/users/search": "roles.yaml",
+  "POST /roles/search": "roles.yaml",
+  "POST /setup/user": "setup.yaml",
+  "POST /signals/broadcast": "signals.yaml",
+  "GET /status": "cluster.yaml",
+  "GET /system/configuration": "system.yaml",
+  "GET /system/usage-metrics": "system.yaml",
+  "POST /tenants": "tenants.yaml",
+  "DELETE /tenants/{tenantId}": "tenants.yaml",
+  "GET /tenants/{tenantId}": "tenants.yaml",
+  "PUT /tenants/{tenantId}": "tenants.yaml",
+  "DELETE /tenants/{tenantId}/clients/{clientId}": "tenants.yaml",
+  "PUT /tenants/{tenantId}/clients/{clientId}": "tenants.yaml",
+  "POST /tenants/{tenantId}/clients/search": "tenants.yaml",
+  "DELETE /tenants/{tenantId}/groups/{groupId}": "tenants.yaml",
+  "PUT /tenants/{tenantId}/groups/{groupId}": "tenants.yaml",
+  "POST /tenants/{tenantId}/groups/search": "tenants.yaml",
+  "DELETE /tenants/{tenantId}/mapping-rules/{mappingRuleId}": "tenants.yaml",
+  "PUT /tenants/{tenantId}/mapping-rules/{mappingRuleId}": "tenants.yaml",
+  "POST /tenants/{tenantId}/mapping-rules/search": "tenants.yaml",
+  "DELETE /tenants/{tenantId}/roles/{roleId}": "tenants.yaml",
+  "PUT /tenants/{tenantId}/roles/{roleId}": "tenants.yaml",
+  "POST /tenants/{tenantId}/roles/search": "tenants.yaml",
+  "DELETE /tenants/{tenantId}/users/{username}": "tenants.yaml",
+  "PUT /tenants/{tenantId}/users/{username}": "tenants.yaml",
+  "POST /tenants/{tenantId}/users/search": "tenants.yaml",
+  "POST /tenants/search": "tenants.yaml",
+  "GET /topology": "cluster.yaml",
+  "GET /user-tasks/{userTaskKey}": "user-tasks.yaml",
+  "PATCH /user-tasks/{userTaskKey}": "user-tasks.yaml",
+  "DELETE /user-tasks/{userTaskKey}/assignee": "user-tasks.yaml",
+  "POST /user-tasks/{userTaskKey}/assignment": "user-tasks.yaml",
+  "POST /user-tasks/{userTaskKey}/audit-logs/search": "user-tasks.yaml",
+  "POST /user-tasks/{userTaskKey}/completion": "user-tasks.yaml",
+  "POST /user-tasks/{userTaskKey}/effective-variables/search": "user-tasks.yaml",
+  "GET /user-tasks/{userTaskKey}/form": "user-tasks.yaml",
+  "POST /user-tasks/{userTaskKey}/variables/search": "user-tasks.yaml",
+  "POST /user-tasks/search": "user-tasks.yaml",
+  "POST /users": "users.yaml",
+  "DELETE /users/{username}": "users.yaml",
+  "GET /users/{username}": "users.yaml",
+  "PUT /users/{username}": "users.yaml",
+  "POST /users/search": "users.yaml",
+  "GET /variables/{variableKey}": "variables.yaml",
+  "POST /variables/search": "variables.yaml"
+}

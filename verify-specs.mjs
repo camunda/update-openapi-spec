@@ -23,7 +23,8 @@ if (!specDir || !versionMapPath || !endpointMapPath) {
 const versionMap = JSON.parse(readFileSync(versionMapPath, "utf-8"));
 const endpointMap = JSON.parse(readFileSync(endpointMapPath, "utf-8"));
 
-const endpointToFile = new Map(endpointMap.map(e => [e.operation, e.sourceFile]));
+// endpoint-map.json is a plain object: { "METHOD /path": "file.yaml", ... }
+const endpointToFile = new Map(Object.entries(endpointMap));
 
 // Build a set of deleted operations to skip
 const deletedOps = new Set(Object.keys(versionMap.deletedOperations || {}));
@@ -90,7 +91,7 @@ for (const [opKey, info] of Object.entries(versionMap.operations)) {
 
 // Check for operations in YAML files that are NOT in version-map
 const versionMapOps = new Set(Object.keys(versionMap.operations));
-const allYamlFiles = [...new Set(endpointMap.map(e => e.sourceFile))];
+const allYamlFiles = [...new Set(Object.values(endpointMap))];
 let extraOps = [];
 
 for (const file of allYamlFiles) {

@@ -30,9 +30,8 @@ const versionMap = JSON.parse(readFileSync(versionMapPath, "utf-8"));
 const endpointMap = JSON.parse(readFileSync(endpointMapPath, "utf-8"));
 
 // Build a lookup: "METHOD /path" → sourceFile
-const endpointToFile = new Map(
-  endpointMap.map((e) => [e.operation, e.sourceFile])
-);
+// endpoint-map.json is a plain object: { "METHOD /path": "file.yaml", ... }
+const endpointToFile = new Map(Object.entries(endpointMap));
 
 // Build a set of deleted operations to skip
 const deletedOps = new Set(Object.keys(versionMap.deletedOperations || {}));
