@@ -1,7 +1,8 @@
 # update-openapi-spec
 
-Adds the `x-added-in-version` OpenAPI extension to every operation in the
-Camunda 8 REST API spec files, so consumers know when each endpoint was introduced.
+Adds the `x-added-in-version` OpenAPI extension to every operation **and
+schema property** in the Camunda 8 REST API spec files, so consumers know
+when each endpoint and field was introduced.
 
 ## Related repos
 
@@ -33,9 +34,24 @@ cat .env
 # ENDPOINT_MAP_PATH=./endpoint-map.json
 
 # 4. Run
-npm run update
+npm run update              # annotates operations
+npm run update:properties   # annotates schema properties
 ```
 
-The script reads every operation from `version-map.json`, looks up its YAML file
-via `endpoint-map.json`, and writes `x-added-in-version: '<version>'` into the
-operation object of the corresponding spec file under `OCA_SPEC_PATH`.
+The first script reads every operation from `version-map.json`, looks up its
+YAML file via `endpoint-map.json`, and writes
+`x-added-in-version: '<version>'` into the operation object of the
+corresponding spec file under `OCA_SPEC_PATH`.
+
+The second script reads every schema property from `version-map.json` and
+writes `x-added-in-version` onto the corresponding property in
+`OCA_SPEC_PATH`, applying these rules:
+
+- Properties listed in `deletedProperties` are never annotated.
+- Properties whose introduction version equals their endpoint's introduction
+  are not annotated (the endpoint annotation already covers them).
+- Only the highest-level ancestor introduced in a given version is annotated;
+  children added in the same version as their nearest property ancestor are
+  skipped, while children added later get their own annotation.
+- For shared schemas referenced from multiple endpoints, the intro is the
+  earliest version across all consumers.

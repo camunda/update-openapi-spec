@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "update": "node update-specs.mjs"
+    "update:operations": "node update-specs-operations.mjs",
+    "update:properties": "node update-specs-properties.mjs"
   },
   "dependencies": {
     "dotenv": "^16.4.0",
