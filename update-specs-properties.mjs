@@ -34,7 +34,7 @@
 import "dotenv/config";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { parseDocument, parse as parseYaml } from "yaml";
+import { parseDocument } from "yaml";
 
 const specDir = process.env.OCA_SPEC_PATH;
 const versionMapPath = process.env.VERSION_MAP_PATH;
@@ -87,148 +87,10 @@ function locationKey(file, inFilePath) {
   return `${file}\x00${inFilePath.join("\x00")}`;
 }
 
-/**
- * Translate a "bundled" path (recorded in version-map relative to the
- * Redocly-bundled spec, where cross-file `$ref`s and `allOf:[{$ref}]` nodes
- * have been inlined) into the corresponding location in the multi-file
- * upstream YAMLs. Returns `{ file, path }` pointing at the actual definition
- * node, or null when no translation is possible.
- *
- * Implemented as a depth-first search with backtracking so that when several
- * `allOf` branches could match `nextSeg`, every branch is tried until one
- * resolves the FULL remaining path.
- */
-function translateToUpstream(upstreamData, startFile, bundledPath) {
-  const visitedRefs = new Set();
-
-  function parseRef(ref) {
-    if (typeof ref !== "string") return null;
-    const hashIdx = ref.indexOf("#");
-    if (hashIdx < 0 || !ref.slice(hashIdx).startsWith("#/")) return null;
-    const filePart = ref.slice(0, hashIdx);
-    const path = ref
-      .slice(hashIdx + 2)
-      .split("/")
-      .map((p) => p.replace(/~1/g, "/").replace(/~0/g, "~"));
-    return { filePart, path };
-  }
-
-  function getAt(obj, path) {
-    let node = obj;
-    for (const seg of path) {
-      if (node == null || typeof node !== "object") return undefined;
-      node = node[seg];
-    }
-    return node;
-  }
-
-  /**
-   * Recursively resolve `remaining` starting from `(file, path)`. Returns
-   * `{ file, path }` on success, null otherwise.
-   */
-  function walk(file, path, remaining) {
-    const obj = upstreamData.get(file);
-    if (!obj) return null;
-    const here = getAt(obj, path);
-
-    // Dereference $ref nodes encountered along the way, but only when there
-    // is still remaining path to navigate. The final node is the annotation
-    // target itself; we want to attach `x-added-in-version` to the local
-    // property even when its only payload is a `$ref` to a shared schema.
-    if (
-      remaining.length > 0
-      && here && typeof here === "object"
-      && typeof here.$ref === "string"
-    ) {
-      const ref = parseRef(here.$ref);
-      if (!ref) return null;
-      const refKey = `${file}::${here.$ref}`;
-      if (visitedRefs.has(refKey)) return null;
-      visitedRefs.add(refKey);
-      const targetFile = ref.filePart || file;
-      const result = walk(targetFile, ref.path, remaining);
-      visitedRefs.delete(refKey);
-      return result;
-    }
-
-    if (remaining.length === 0) {
-      return { file, path };
-    }
-
-    const nextSeg = remaining[0];
-    const rest = remaining.slice(1);
-
-    // Direct navigation.
-    if (here && typeof here === "object" && nextSeg in here) {
-      // For `allOf/<idx>` verify the upstream index actually exists.
-      if (nextSeg === "allOf" && rest.length >= 1 && /^\d+$/.test(String(rest[0]))) {
-        const idx = Number(rest[0]);
-        if (Array.isArray(here.allOf) && here.allOf[idx] !== undefined) {
-          const r = walk(file, [...path, "allOf", String(idx)], rest.slice(1));
-          if (r) return r;
-        }
-      } else {
-        const r = walk(file, [...path, nextSeg], rest);
-        if (r) return r;
-      }
-    }
-
-    // Recovery 1: the bundler expanded `allOf: [{ $ref }]` by absorbing the
-    // ref's contents into a sibling allOf entry. When the bundled path
-    // would consume an `allOf/<idx>` pair that doesn't line up upstream,
-    // try following the upstream allOf's `$ref` branch and skip the
-    // `allOf/<idx>` pair.
-    if (
-      nextSeg === "allOf"
-      && rest.length >= 1
-      && /^\d+$/.test(String(rest[0]))
-      && here && typeof here === "object"
-      && Array.isArray(here.allOf)
-    ) {
-      for (const branch of here.allOf) {
-        if (branch && typeof branch === "object" && typeof branch.$ref === "string") {
-          const ref = parseRef(branch.$ref);
-          if (!ref) continue;
-          const refKey = `${file}::allOf::${branch.$ref}`;
-          if (visitedRefs.has(refKey)) continue;
-          visitedRefs.add(refKey);
-          const targetFile = ref.filePart || file;
-          const r = walk(targetFile, ref.path, rest.slice(1));
-          visitedRefs.delete(refKey);
-          if (r) return r;
-        }
-      }
-    }
-
-    // Recovery 2: bundler inlined a `$ref` from an `allOf` branch by absorbing
-    // its properties directly into the parent. Scan every allOf branch for
-    // one that can resolve `nextSeg` and the full remaining path.
-    if (here && typeof here === "object" && Array.isArray(here.allOf)) {
-      for (let i = 0; i < here.allOf.length; i++) {
-        const branch = here.allOf[i];
-        if (!branch || typeof branch !== "object") continue;
-        if (typeof branch.$ref === "string") {
-          const ref = parseRef(branch.$ref);
-          if (!ref) continue;
-          const refKey = `${file}::allOf-inline::${branch.$ref}`;
-          if (visitedRefs.has(refKey)) continue;
-          visitedRefs.add(refKey);
-          const targetFile = ref.filePart || file;
-          const r = walk(targetFile, ref.path, remaining);
-          visitedRefs.delete(refKey);
-          if (r) return r;
-        } else if (nextSeg in branch) {
-          const r = walk(file, [...path, "allOf", String(i), nextSeg], rest);
-          if (r) return r;
-        }
-      }
-    }
-
-    return null;
-  }
-
-  return walk(startFile, [], bundledPath);
-}
+// Note: version-map property paths are clean upstream paths (every entry
+// resolves via `doc.getIn(path)` against the multi-file YAML). Phase 3 uses
+// the upstream YAML strictly as the write target — no path translation is
+// performed.
 
 // ── Load inputs ──────────────────────────────────────────────────────────────
 
@@ -356,45 +218,26 @@ console.log(`  Annotations planned: ${toAnnotate.size}\n`);
 
 // ── Phase 3: translate to upstream and write annotations ─────────────────────
 
-// Load each upstream YAML twice: as plain data (for cross-file path
-// translation) and as a Document (for locating node ranges). We do NOT
-// re-serialize the Document — instead we use it to find byte ranges and
-// then splice `x-added-in-version` lines into the original text. This
-// preserves every byte of the file we don't deliberately touch, avoiding
-// the `yaml` library's tendency to reflow folded scalars and other
-// formatting near a mutated mapping.
+// Load each upstream YAML once. We parse it as a Document (for locating
+// node byte ranges) but do NOT re-serialize — instead we splice
+// `x-added-in-version` lines into the original text, preserving every
+// untouched byte and avoiding the `yaml` library's tendency to reflow
+// folded scalars and other formatting around mutated mappings.
 const upstreamFiles = readdirSync(specDir).filter((f) => f.endsWith(".yaml"));
-const upstreamData = new Map();
 const upstreamDocs = new Map();
 const upstreamText = new Map();
 for (const file of upstreamFiles) {
   const text = readFileSync(join(specDir, file), "utf-8");
-  upstreamData.set(file, parseYaml(text));
   upstreamDocs.set(file, parseDocument(text));
   upstreamText.set(file, text);
 }
 
+// Group planned annotations by upstream file. Paths are taken verbatim from
+// the version-map; no translation is performed.
 const byFile = new Map();
-let translationFailures = 0;
 for (const ann of toAnnotate.values()) {
-  const translated = translateToUpstream(upstreamData, ann.file, ann.inFilePath);
-  if (!translated) {
-    translationFailures++;
-    if (process.env.VERIFY_DEBUG) {
-      console.warn(
-        `  UNRESOLVABLE ${ann.file}: ${ann.inFilePath.join("/")} (intro ${ann.intro})`
-      );
-    }
-    continue;
-  }
-  if (!byFile.has(translated.file)) byFile.set(translated.file, []);
-  byFile.get(translated.file).push({ path: translated.path, intro: ann.intro });
-}
-
-if (translationFailures > 0) {
-  console.log(
-    `Annotation paths that could not be translated to upstream: ${translationFailures}`
-  );
+  if (!byFile.has(ann.file)) byFile.set(ann.file, []);
+  byFile.get(ann.file).push({ path: ann.inFilePath, intro: ann.intro });
 }
 
 let filesWritten = 0;

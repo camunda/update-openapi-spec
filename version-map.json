@@ -2973,9 +2973,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "processDefinitionKey"
       ],
@@ -2997,9 +2995,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "processInstanceKey"
       ],
@@ -3021,9 +3017,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "state"
       ],
@@ -3045,9 +3039,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "assignee"
       ],
@@ -3070,9 +3062,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "elementId"
       ],
@@ -3088,9 +3078,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "candidateGroup"
       ],
@@ -3113,9 +3101,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "candidateUser"
       ],
@@ -3147,9 +3133,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "processDefinitionId"
       ],
@@ -3990,6 +3974,7 @@
         "filter"
       ],
       "children": [
+        "POST /process-instances/search > request > filter.parentProcessInstanceKey",
         "POST /process-instances/search > request > filter.running",
         "POST /process-instances/search > request > filter.active",
         "POST /process-instances/search > request > filter.incidents",
@@ -4014,7 +3999,6 @@
         "POST /process-instances/search > request > filter.hasIncident",
         "POST /process-instances/search > request > filter.variables",
         "POST /process-instances/search > request > filter.processInstanceKey",
-        "POST /process-instances/search > request > filter.parentProcessInstanceKey",
         "POST /process-instances/search > request > filter.parentElementInstanceKey",
         "POST /process-instances/search > request > filter.batchOperationKey",
         "POST /process-instances/search > request > filter.hasRetriesLeft",
@@ -4025,6 +4009,28 @@
         "POST /process-instances/search > request > filter.tags",
         "POST /process-instances/search > request > filter.$or",
         "POST /process-instances/search > request > filter.businessId"
+      ]
+    },
+    "POST /process-instances/search > request > filter.parentProcessInstanceKey": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /process-instances/search",
+      "property": "parentProcessInstanceKey",
+      "qualifiedName": "filter.parentProcessInstanceKey",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "BaseProcessInstanceFilterFields",
+        "properties",
+        "parentProcessInstanceKey"
+      ],
+      "children": [
+        "POST /process-instances/search > request > filter.parentProcessInstanceKey.$eq",
+        "POST /process-instances/search > request > filter.parentProcessInstanceKey.$neq",
+        "POST /process-instances/search > request > filter.parentProcessInstanceKey.$exists",
+        "POST /process-instances/search > request > filter.parentProcessInstanceKey.$in",
+        "POST /process-instances/search > request > filter.parentProcessInstanceKey.$notIn"
       ]
     },
     "POST /process-instances/search > request > filter.running": {
@@ -5056,6 +5062,10 @@
       "qualifiedName": "filter",
       "depth": 0,
       "children": [
+        "POST /flownode-instances/search > request > filter.flowNodeInstanceKey",
+        "POST /flownode-instances/search > request > filter.processInstanceKey",
+        "POST /flownode-instances/search > request > filter.processDefinitionKey",
+        "POST /flownode-instances/search > request > filter.incidentKey",
         "POST /flownode-instances/search > request > filter.state",
         "POST /flownode-instances/search > request > filter.type",
         "POST /flownode-instances/search > request > filter.flowNodeId",
@@ -5064,6 +5074,42 @@
         "POST /flownode-instances/search > request > filter.incident",
         "POST /flownode-instances/search > request > filter.tenantId"
       ]
+    },
+    "POST /flownode-instances/search > request > filter.flowNodeInstanceKey": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /flownode-instances/search",
+      "property": "flowNodeInstanceKey",
+      "qualifiedName": "filter.flowNodeInstanceKey",
+      "depth": 1,
+      "children": []
+    },
+    "POST /flownode-instances/search > request > filter.processInstanceKey": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /flownode-instances/search",
+      "property": "processInstanceKey",
+      "qualifiedName": "filter.processInstanceKey",
+      "depth": 1,
+      "children": []
+    },
+    "POST /flownode-instances/search > request > filter.processDefinitionKey": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /flownode-instances/search",
+      "property": "processDefinitionKey",
+      "qualifiedName": "filter.processDefinitionKey",
+      "depth": 1,
+      "children": []
+    },
+    "POST /flownode-instances/search > request > filter.incidentKey": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /flownode-instances/search",
+      "property": "incidentKey",
+      "qualifiedName": "filter.incidentKey",
+      "depth": 1,
+      "children": []
     },
     "POST /flownode-instances/search > request > filter.state": {
       "version": "8.6",
@@ -5403,18 +5449,50 @@
         "filter"
       ],
       "children": [
+        "POST /decision-definitions/search > request > filter.decisionDefinitionKey",
+        "POST /decision-definitions/search > request > filter.decisionRequirementsKey",
         "POST /decision-definitions/search > request > filter.decisionDefinitionId",
         "POST /decision-definitions/search > request > filter.decisionDefinitionName",
         "POST /decision-definitions/search > request > filter.version",
         "POST /decision-definitions/search > request > filter.decisionRequirementsId",
         "POST /decision-definitions/search > request > filter.tenantId",
         "POST /decision-definitions/search > request > filter.name",
-        "POST /decision-definitions/search > request > filter.decisionDefinitionKey",
-        "POST /decision-definitions/search > request > filter.decisionRequirementsKey",
         "POST /decision-definitions/search > request > filter.isLatestVersion",
         "POST /decision-definitions/search > request > filter.decisionRequirementsName",
         "POST /decision-definitions/search > request > filter.decisionRequirementsVersion"
       ]
+    },
+    "POST /decision-definitions/search > request > filter.decisionDefinitionKey": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /decision-definitions/search",
+      "property": "decisionDefinitionKey",
+      "qualifiedName": "filter.decisionDefinitionKey",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "DecisionDefinitionFilter",
+        "properties",
+        "decisionDefinitionKey"
+      ],
+      "children": []
+    },
+    "POST /decision-definitions/search > request > filter.decisionRequirementsKey": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /decision-definitions/search",
+      "property": "decisionRequirementsKey",
+      "qualifiedName": "filter.decisionRequirementsKey",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "DecisionDefinitionFilter",
+        "properties",
+        "decisionRequirementsKey"
+      ],
+      "children": []
     },
     "POST /decision-definitions/search > request > filter.decisionDefinitionId": {
       "version": "8.6",
@@ -5426,9 +5504,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "DecisionDefinitionFilter",
         "properties",
         "decisionDefinitionId"
       ],
@@ -5453,9 +5529,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "DecisionDefinitionFilter",
         "properties",
         "version"
       ],
@@ -5471,9 +5545,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "DecisionDefinitionFilter",
         "properties",
         "decisionRequirementsId"
       ],
@@ -5489,9 +5561,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "DecisionDefinitionFilter",
         "properties",
         "tenantId"
       ],
@@ -5830,13 +5900,29 @@
         "filter"
       ],
       "children": [
+        "POST /decision-requirements/search > request > filter.decisionRequirementsKey",
         "POST /decision-requirements/search > request > filter.decisionRequirementsName",
         "POST /decision-requirements/search > request > filter.version",
         "POST /decision-requirements/search > request > filter.decisionRequirementsId",
         "POST /decision-requirements/search > request > filter.tenantId",
-        "POST /decision-requirements/search > request > filter.decisionRequirementsKey",
         "POST /decision-requirements/search > request > filter.resourceName"
       ]
+    },
+    "POST /decision-requirements/search > request > filter.decisionRequirementsKey": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /decision-requirements/search",
+      "property": "decisionRequirementsKey",
+      "qualifiedName": "filter.decisionRequirementsKey",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "DecisionRequirementsFilter",
+        "properties",
+        "decisionRequirementsKey"
+      ],
+      "children": []
     },
     "POST /decision-requirements/search > request > filter.decisionRequirementsName": {
       "version": "8.6",
@@ -5848,9 +5934,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionRequirementsSearchQuery",
-        "properties",
-        "filter",
+        "DecisionRequirementsFilter",
         "properties",
         "decisionRequirementsName"
       ],
@@ -5866,9 +5950,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionRequirementsSearchQuery",
-        "properties",
-        "filter",
+        "DecisionRequirementsFilter",
         "properties",
         "version"
       ],
@@ -5884,9 +5966,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionRequirementsSearchQuery",
-        "properties",
-        "filter",
+        "DecisionRequirementsFilter",
         "properties",
         "decisionRequirementsId"
       ],
@@ -5902,9 +5982,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionRequirementsSearchQuery",
-        "properties",
-        "filter",
+        "DecisionRequirementsFilter",
         "properties",
         "tenantId"
       ],
@@ -6230,6 +6308,10 @@
         "filter"
       ],
       "children": [
+        "POST /decision-instances/search > request > filter.key",
+        "POST /decision-instances/search > request > filter.processDefinitionKey",
+        "POST /decision-instances/search > request > filter.processInstanceKey",
+        "POST /decision-instances/search > request > filter.decisionDefinitionKey",
         "POST /decision-instances/search > request > filter.state",
         "POST /decision-instances/search > request > filter.evaluationFailure",
         "POST /decision-instances/search > request > filter.decisionDefinitionId",
@@ -6240,12 +6322,72 @@
         "POST /decision-instances/search > request > filter.decisionEvaluationInstanceKey",
         "POST /decision-instances/search > request > filter.evaluationDate",
         "POST /decision-instances/search > request > filter.decisionEvaluationKey",
-        "POST /decision-instances/search > request > filter.processDefinitionKey",
-        "POST /decision-instances/search > request > filter.processInstanceKey",
-        "POST /decision-instances/search > request > filter.decisionDefinitionKey",
         "POST /decision-instances/search > request > filter.elementInstanceKey",
         "POST /decision-instances/search > request > filter.rootDecisionDefinitionKey",
         "POST /decision-instances/search > request > filter.decisionRequirementsKey"
+      ]
+    },
+    "POST /decision-instances/search > request > filter.key": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /decision-instances/search",
+      "property": "key",
+      "qualifiedName": "filter.key",
+      "depth": 1,
+      "children": []
+    },
+    "POST /decision-instances/search > request > filter.processDefinitionKey": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /decision-instances/search",
+      "property": "processDefinitionKey",
+      "qualifiedName": "filter.processDefinitionKey",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "DecisionInstanceFilter",
+        "properties",
+        "processDefinitionKey"
+      ],
+      "children": []
+    },
+    "POST /decision-instances/search > request > filter.processInstanceKey": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /decision-instances/search",
+      "property": "processInstanceKey",
+      "qualifiedName": "filter.processInstanceKey",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "DecisionInstanceFilter",
+        "properties",
+        "processInstanceKey"
+      ],
+      "children": []
+    },
+    "POST /decision-instances/search > request > filter.decisionDefinitionKey": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /decision-instances/search",
+      "property": "decisionDefinitionKey",
+      "qualifiedName": "filter.decisionDefinitionKey",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "DecisionInstanceFilter",
+        "properties",
+        "decisionDefinitionKey"
+      ],
+      "children": [
+        "POST /decision-instances/search > request > filter.decisionDefinitionKey.$eq",
+        "POST /decision-instances/search > request > filter.decisionDefinitionKey.$neq",
+        "POST /decision-instances/search > request > filter.decisionDefinitionKey.$exists",
+        "POST /decision-instances/search > request > filter.decisionDefinitionKey.$in",
+        "POST /decision-instances/search > request > filter.decisionDefinitionKey.$notIn"
       ]
     },
     "POST /decision-instances/search > request > filter.state": {
@@ -6258,9 +6400,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionInstanceSearchQuery",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "state"
       ],
@@ -6283,9 +6423,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionInstanceSearchQuery",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "evaluationFailure"
       ],
@@ -6301,9 +6439,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionInstanceSearchQuery",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "decisionDefinitionId"
       ],
@@ -6319,9 +6455,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionInstanceSearchQuery",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "decisionDefinitionName"
       ],
@@ -6337,9 +6471,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionInstanceSearchQuery",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "decisionDefinitionVersion"
       ],
@@ -6355,9 +6487,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionInstanceSearchQuery",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "decisionDefinitionType"
       ],
@@ -6373,9 +6503,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionInstanceSearchQuery",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "tenantId"
       ],
@@ -7906,6 +8034,11 @@
         "filter"
       ],
       "children": [
+        "POST /incidents/search > request > filter.key",
+        "POST /incidents/search > request > filter.processDefinitionKey",
+        "POST /incidents/search > request > filter.processInstanceKey",
+        "POST /incidents/search > request > filter.flowNodeInstanceKey",
+        "POST /incidents/search > request > filter.jobKey",
         "POST /incidents/search > request > filter.processDefinitionId",
         "POST /incidents/search > request > filter.errorType",
         "POST /incidents/search > request > filter.errorMessage",
@@ -7916,10 +8049,91 @@
         "POST /incidents/search > request > filter.tenantId",
         "POST /incidents/search > request > filter.elementId",
         "POST /incidents/search > request > filter.incidentKey",
-        "POST /incidents/search > request > filter.processDefinitionKey",
-        "POST /incidents/search > request > filter.processInstanceKey",
-        "POST /incidents/search > request > filter.elementInstanceKey",
-        "POST /incidents/search > request > filter.jobKey"
+        "POST /incidents/search > request > filter.elementInstanceKey"
+      ]
+    },
+    "POST /incidents/search > request > filter.key": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /incidents/search",
+      "property": "key",
+      "qualifiedName": "filter.key",
+      "depth": 1,
+      "children": []
+    },
+    "POST /incidents/search > request > filter.processDefinitionKey": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /incidents/search",
+      "property": "processDefinitionKey",
+      "qualifiedName": "filter.processDefinitionKey",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "IncidentFilter",
+        "properties",
+        "processDefinitionKey"
+      ],
+      "children": [
+        "POST /incidents/search > request > filter.processDefinitionKey.$eq",
+        "POST /incidents/search > request > filter.processDefinitionKey.$neq",
+        "POST /incidents/search > request > filter.processDefinitionKey.$exists",
+        "POST /incidents/search > request > filter.processDefinitionKey.$in",
+        "POST /incidents/search > request > filter.processDefinitionKey.$notIn"
+      ]
+    },
+    "POST /incidents/search > request > filter.processInstanceKey": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /incidents/search",
+      "property": "processInstanceKey",
+      "qualifiedName": "filter.processInstanceKey",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "IncidentFilter",
+        "properties",
+        "processInstanceKey"
+      ],
+      "children": [
+        "POST /incidents/search > request > filter.processInstanceKey.$eq",
+        "POST /incidents/search > request > filter.processInstanceKey.$neq",
+        "POST /incidents/search > request > filter.processInstanceKey.$exists",
+        "POST /incidents/search > request > filter.processInstanceKey.$in",
+        "POST /incidents/search > request > filter.processInstanceKey.$notIn"
+      ]
+    },
+    "POST /incidents/search > request > filter.flowNodeInstanceKey": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /incidents/search",
+      "property": "flowNodeInstanceKey",
+      "qualifiedName": "filter.flowNodeInstanceKey",
+      "depth": 1,
+      "children": []
+    },
+    "POST /incidents/search > request > filter.jobKey": {
+      "version": "8.6",
+      "location": "request",
+      "endpoint": "POST /incidents/search",
+      "property": "jobKey",
+      "qualifiedName": "filter.jobKey",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "IncidentFilter",
+        "properties",
+        "jobKey"
+      ],
+      "children": [
+        "POST /incidents/search > request > filter.jobKey.$eq",
+        "POST /incidents/search > request > filter.jobKey.$neq",
+        "POST /incidents/search > request > filter.jobKey.$exists",
+        "POST /incidents/search > request > filter.jobKey.$in",
+        "POST /incidents/search > request > filter.jobKey.$notIn"
       ]
     },
     "POST /incidents/search > request > filter.processDefinitionId": {
@@ -7932,9 +8146,7 @@
       "path": [
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "processDefinitionId"
       ],
@@ -7957,9 +8169,7 @@
       "path": [
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "errorType"
       ],
@@ -7982,9 +8192,7 @@
       "path": [
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "errorMessage"
       ],
@@ -8016,9 +8224,7 @@
       "path": [
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "creationTime"
       ],
@@ -8043,9 +8249,7 @@
       "path": [
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "state"
       ],
@@ -8077,9 +8281,7 @@
       "path": [
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "tenantId"
       ],
@@ -8768,9 +8970,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "processDefinition",
+        "DeploymentProcessResult",
         "properties",
         "processDefinitionKey"
       ],
@@ -8786,9 +8986,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "processDefinition",
+        "DeploymentProcessResult",
         "properties",
         "processDefinitionId"
       ],
@@ -8804,9 +9002,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "processDefinition",
+        "DeploymentProcessResult",
         "properties",
         "processDefinitionVersion"
       ],
@@ -8822,9 +9018,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "processDefinition",
+        "DeploymentProcessResult",
         "properties",
         "resourceName"
       ],
@@ -8840,9 +9034,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "processDefinition",
+        "DeploymentProcessResult",
         "properties",
         "tenantId"
       ],
@@ -8882,9 +9074,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "decisionDefinition",
+        "DeploymentDecisionResult",
         "properties",
         "decisionDefinitionKey"
       ],
@@ -8900,9 +9090,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "decisionDefinition",
+        "DeploymentDecisionResult",
         "properties",
         "decisionRequirementsKey"
       ],
@@ -8918,9 +9106,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "decisionDefinition",
+        "DeploymentDecisionResult",
         "properties",
         "decisionDefinitionId"
       ],
@@ -8936,9 +9122,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "decisionDefinition",
+        "DeploymentDecisionResult",
         "properties",
         "version"
       ],
@@ -8954,9 +9138,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "decisionDefinition",
+        "DeploymentDecisionResult",
         "properties",
         "name"
       ],
@@ -8972,9 +9154,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "decisionDefinition",
+        "DeploymentDecisionResult",
         "properties",
         "tenantId"
       ],
@@ -8990,9 +9170,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "decisionDefinition",
+        "DeploymentDecisionResult",
         "properties",
         "decisionRequirementsId"
       ],
@@ -9031,9 +9209,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "decisionRequirements",
+        "DeploymentDecisionRequirementsResult",
         "properties",
         "decisionRequirementsKey"
       ],
@@ -9049,9 +9225,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "decisionRequirements",
+        "DeploymentDecisionRequirementsResult",
         "properties",
         "decisionRequirementsId"
       ],
@@ -9067,9 +9241,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "decisionRequirements",
+        "DeploymentDecisionRequirementsResult",
         "properties",
         "version"
       ],
@@ -9085,9 +9257,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "decisionRequirements",
+        "DeploymentDecisionRequirementsResult",
         "properties",
         "decisionRequirementsName"
       ],
@@ -9103,9 +9273,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "decisionRequirements",
+        "DeploymentDecisionRequirementsResult",
         "properties",
         "tenantId"
       ],
@@ -9121,9 +9289,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "decisionRequirements",
+        "DeploymentDecisionRequirementsResult",
         "properties",
         "resourceName"
       ],
@@ -9161,9 +9327,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "form",
+        "DeploymentFormResult",
         "properties",
         "formKey"
       ],
@@ -9179,9 +9343,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "form",
+        "DeploymentFormResult",
         "properties",
         "formId"
       ],
@@ -9197,9 +9359,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "form",
+        "DeploymentFormResult",
         "properties",
         "version"
       ],
@@ -9215,9 +9375,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "form",
+        "DeploymentFormResult",
         "properties",
         "resourceName"
       ],
@@ -9233,9 +9391,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "form",
+        "DeploymentFormResult",
         "properties",
         "tenantId"
       ],
@@ -9927,9 +10083,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "resource",
+        "DeploymentResourceResult",
         "properties",
         "resourceKey"
       ],
@@ -9945,9 +10099,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "resource",
+        "DeploymentResourceResult",
         "properties",
         "resourceId"
       ],
@@ -9963,9 +10115,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "resource",
+        "DeploymentResourceResult",
         "properties",
         "version"
       ],
@@ -9981,9 +10131,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "resource",
+        "DeploymentResourceResult",
         "properties",
         "resourceName"
       ],
@@ -9999,9 +10147,7 @@
       "path": [
         "components",
         "schemas",
-        "DeploymentMetadataResult",
-        "properties",
-        "resource",
+        "DeploymentResourceResult",
         "properties",
         "tenantId"
       ],
@@ -10435,9 +10581,7 @@
       "path": [
         "components",
         "schemas",
-        "ActivatedJobResult",
-        "properties",
-        "userTask",
+        "UserTaskProperties",
         "properties",
         "action"
       ],
@@ -10453,9 +10597,7 @@
       "path": [
         "components",
         "schemas",
-        "ActivatedJobResult",
-        "properties",
-        "userTask",
+        "UserTaskProperties",
         "properties",
         "assignee"
       ],
@@ -10471,9 +10613,7 @@
       "path": [
         "components",
         "schemas",
-        "ActivatedJobResult",
-        "properties",
-        "userTask",
+        "UserTaskProperties",
         "properties",
         "candidateGroups"
       ],
@@ -10489,9 +10629,7 @@
       "path": [
         "components",
         "schemas",
-        "ActivatedJobResult",
-        "properties",
-        "userTask",
+        "UserTaskProperties",
         "properties",
         "candidateUsers"
       ],
@@ -10507,9 +10645,7 @@
       "path": [
         "components",
         "schemas",
-        "ActivatedJobResult",
-        "properties",
-        "userTask",
+        "UserTaskProperties",
         "properties",
         "changedAttributes"
       ],
@@ -10525,9 +10661,7 @@
       "path": [
         "components",
         "schemas",
-        "ActivatedJobResult",
-        "properties",
-        "userTask",
+        "UserTaskProperties",
         "properties",
         "dueDate"
       ],
@@ -10543,9 +10677,7 @@
       "path": [
         "components",
         "schemas",
-        "ActivatedJobResult",
-        "properties",
-        "userTask",
+        "UserTaskProperties",
         "properties",
         "followUpDate"
       ],
@@ -10561,9 +10693,7 @@
       "path": [
         "components",
         "schemas",
-        "ActivatedJobResult",
-        "properties",
-        "userTask",
+        "UserTaskProperties",
         "properties",
         "formKey"
       ],
@@ -10579,9 +10709,7 @@
       "path": [
         "components",
         "schemas",
-        "ActivatedJobResult",
-        "properties",
-        "userTask",
+        "UserTaskProperties",
         "properties",
         "priority"
       ],
@@ -10597,9 +10725,7 @@
       "path": [
         "components",
         "schemas",
-        "ActivatedJobResult",
-        "properties",
-        "userTask",
+        "UserTaskProperties",
         "properties",
         "userTaskKey"
       ],
@@ -10721,9 +10847,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "deadline"
       ],
@@ -10884,9 +11008,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "deniedReason"
       ],
@@ -11013,9 +11135,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "elementId"
       ],
@@ -11142,9 +11262,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "elementInstanceKey"
       ],
@@ -11251,9 +11369,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "endTime"
       ],
@@ -11414,9 +11530,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "errorCode"
       ],
@@ -11543,9 +11657,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "errorMessage"
       ],
@@ -11672,9 +11784,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "hasFailedWithRetriesLeft"
       ],
@@ -11690,9 +11800,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "isDenied"
       ],
@@ -11708,9 +11816,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "jobKey"
       ],
@@ -11817,9 +11923,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "kind"
       ],
@@ -11921,9 +12025,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "listenerEventType"
       ],
@@ -12025,9 +12127,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "processDefinitionId"
       ],
@@ -12154,9 +12254,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "processDefinitionKey"
       ],
@@ -12263,9 +12361,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "processInstanceKey"
       ],
@@ -12372,9 +12468,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "retries"
       ],
@@ -12535,9 +12629,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "state"
       ],
@@ -12639,9 +12731,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "tenantId"
       ],
@@ -12768,9 +12858,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "type"
       ],
@@ -12897,9 +12985,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "worker"
       ],
@@ -14983,9 +15069,7 @@
         "roles.yaml",
         "components",
         "schemas",
-        "RoleSearchQueryRequest",
-        "properties",
-        "filter",
+        "RoleFilter",
         "properties",
         "roleId"
       ],
@@ -15002,9 +15086,7 @@
         "roles.yaml",
         "components",
         "schemas",
-        "RoleSearchQueryRequest",
-        "properties",
-        "filter",
+        "RoleFilter",
         "properties",
         "name"
       ],
@@ -15348,9 +15430,7 @@
         "mapping-rules.yaml",
         "components",
         "schemas",
-        "MappingRuleSearchQueryRequest",
-        "properties",
-        "filter",
+        "MappingRuleFilter",
         "properties",
         "claimName"
       ],
@@ -15367,9 +15447,7 @@
         "mapping-rules.yaml",
         "components",
         "schemas",
-        "MappingRuleSearchQueryRequest",
-        "properties",
-        "filter",
+        "MappingRuleFilter",
         "properties",
         "claimValue"
       ],
@@ -15386,9 +15464,7 @@
         "mapping-rules.yaml",
         "components",
         "schemas",
-        "MappingRuleSearchQueryRequest",
-        "properties",
-        "filter",
+        "MappingRuleFilter",
         "properties",
         "name"
       ],
@@ -15405,9 +15481,7 @@
         "mapping-rules.yaml",
         "components",
         "schemas",
-        "MappingRuleSearchQueryRequest",
-        "properties",
-        "filter",
+        "MappingRuleFilter",
         "properties",
         "mappingRuleId"
       ],
@@ -15762,9 +15836,7 @@
       "path": [
         "components",
         "schemas",
-        "TenantSearchQueryRequest",
-        "properties",
-        "filter",
+        "TenantFilter",
         "properties",
         "tenantId"
       ],
@@ -15780,9 +15852,7 @@
       "path": [
         "components",
         "schemas",
-        "TenantSearchQueryRequest",
-        "properties",
-        "filter",
+        "TenantFilter",
         "properties",
         "name"
       ],
@@ -16667,9 +16737,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "priority"
       ],
@@ -16830,9 +16898,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "name"
       ],
@@ -17063,9 +17129,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "tenantId"
       ],
@@ -17192,9 +17256,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "creationDate"
       ],
@@ -17355,9 +17417,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "completionDate"
       ],
@@ -17518,9 +17578,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "followUpDate"
       ],
@@ -17681,9 +17739,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "dueDate"
       ],
@@ -17844,9 +17900,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "processInstanceVariables"
       ],
@@ -18010,9 +18064,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "localVariables"
       ],
@@ -18176,9 +18228,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "userTaskKey"
       ],
@@ -18194,9 +18244,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "elementInstanceKey"
       ],
@@ -18462,9 +18510,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskVariableSearchQueryRequest",
-        "properties",
-        "filter",
+        "UserTaskVariableFilter",
         "properties",
         "name"
       ],
@@ -18933,11 +18979,10 @@
       "qualifiedName": "page.from",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "UserTaskEffectiveVariableSearchQueryRequest",
-        "properties",
-        "page",
+        "OffsetPagination",
         "properties",
         "from"
       ],
@@ -18951,11 +18996,10 @@
       "qualifiedName": "page.limit",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "UserTaskEffectiveVariableSearchQueryRequest",
-        "properties",
-        "page",
+        "OffsetPagination",
         "properties",
         "limit"
       ],
@@ -19040,9 +19084,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskEffectiveVariableSearchQueryRequest",
-        "properties",
-        "filter",
+        "UserTaskVariableFilter",
         "properties",
         "name"
       ],
@@ -19479,9 +19521,7 @@
       "path": [
         "components",
         "schemas",
-        "VariableSearchQuery",
-        "properties",
-        "filter",
+        "VariableFilter",
         "properties",
         "name"
       ],
@@ -19608,9 +19648,7 @@
       "path": [
         "components",
         "schemas",
-        "VariableSearchQuery",
-        "properties",
-        "filter",
+        "VariableFilter",
         "properties",
         "value"
       ],
@@ -19737,9 +19775,7 @@
       "path": [
         "components",
         "schemas",
-        "VariableSearchQuery",
-        "properties",
-        "filter",
+        "VariableFilter",
         "properties",
         "tenantId"
       ],
@@ -19755,9 +19791,7 @@
       "path": [
         "components",
         "schemas",
-        "VariableSearchQuery",
-        "properties",
-        "filter",
+        "VariableFilter",
         "properties",
         "isTruncated"
       ],
@@ -19773,9 +19807,7 @@
       "path": [
         "components",
         "schemas",
-        "VariableSearchQuery",
-        "properties",
-        "filter",
+        "VariableFilter",
         "properties",
         "variableKey"
       ],
@@ -19882,9 +19914,7 @@
       "path": [
         "components",
         "schemas",
-        "VariableSearchQuery",
-        "properties",
-        "filter",
+        "VariableFilter",
         "properties",
         "scopeKey"
       ],
@@ -19991,9 +20021,7 @@
       "path": [
         "components",
         "schemas",
-        "VariableSearchQuery",
-        "properties",
-        "filter",
+        "VariableFilter",
         "properties",
         "processInstanceKey"
       ],
@@ -20590,9 +20618,7 @@
       "path": [
         "components",
         "schemas",
-        "ProcessDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "ProcessDefinitionFilter",
         "properties",
         "name"
       ],
@@ -20719,9 +20745,7 @@
       "path": [
         "components",
         "schemas",
-        "ProcessDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "ProcessDefinitionFilter",
         "properties",
         "isLatestVersion"
       ],
@@ -20737,9 +20761,7 @@
       "path": [
         "components",
         "schemas",
-        "ProcessDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "ProcessDefinitionFilter",
         "properties",
         "resourceName"
       ],
@@ -20755,9 +20777,7 @@
       "path": [
         "components",
         "schemas",
-        "ProcessDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "ProcessDefinitionFilter",
         "properties",
         "version"
       ],
@@ -20773,9 +20793,7 @@
       "path": [
         "components",
         "schemas",
-        "ProcessDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "ProcessDefinitionFilter",
         "properties",
         "versionTag"
       ],
@@ -20791,9 +20809,7 @@
       "path": [
         "components",
         "schemas",
-        "ProcessDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "ProcessDefinitionFilter",
         "properties",
         "processDefinitionId"
       ],
@@ -20920,9 +20936,7 @@
       "path": [
         "components",
         "schemas",
-        "ProcessDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "ProcessDefinitionFilter",
         "properties",
         "tenantId"
       ],
@@ -20938,9 +20952,7 @@
       "path": [
         "components",
         "schemas",
-        "ProcessDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "ProcessDefinitionFilter",
         "properties",
         "processDefinitionKey"
       ],
@@ -20956,9 +20968,7 @@
       "path": [
         "components",
         "schemas",
-        "ProcessDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "ProcessDefinitionFilter",
         "properties",
         "hasStartForm"
       ],
@@ -23454,11 +23464,10 @@
       "qualifiedName": "filter.$or",
       "depth": 1,
       "path": [
+        "process-instances.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionElementStatisticsQuery",
-        "properties",
-        "filter",
+        "ProcessDefinitionStatisticsFilter",
         "allOf",
         "1",
         "properties",
@@ -27299,28 +27308,6 @@
       ],
       "children": []
     },
-    "POST /process-instances/search > request > filter.parentProcessInstanceKey": {
-      "version": "8.8",
-      "location": "request",
-      "endpoint": "POST /process-instances/search",
-      "property": "parentProcessInstanceKey",
-      "qualifiedName": "filter.parentProcessInstanceKey",
-      "depth": 1,
-      "path": [
-        "components",
-        "schemas",
-        "BaseProcessInstanceFilterFields",
-        "properties",
-        "parentProcessInstanceKey"
-      ],
-      "children": [
-        "POST /process-instances/search > request > filter.parentProcessInstanceKey.$eq",
-        "POST /process-instances/search > request > filter.parentProcessInstanceKey.$neq",
-        "POST /process-instances/search > request > filter.parentProcessInstanceKey.$exists",
-        "POST /process-instances/search > request > filter.parentProcessInstanceKey.$in",
-        "POST /process-instances/search > request > filter.parentProcessInstanceKey.$notIn"
-      ]
-    },
     "POST /process-instances/search > request > filter.parentProcessInstanceKey.$eq": {
       "version": "8.8",
       "location": "request",
@@ -28301,9 +28288,7 @@
       "path": [
         "components",
         "schemas",
-        "ProcessInstanceSearchQuery",
-        "properties",
-        "filter",
+        "ProcessInstanceFilter",
         "allOf",
         "1",
         "properties",
@@ -33992,12 +33977,9 @@
       "qualifiedName": "filter.$or",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "ProcessInstanceCancellationBatchOperationRequest",
-        "properties",
-        "filter",
+        "ProcessInstanceFilter",
         "allOf",
         "1",
         "properties",
@@ -39054,12 +39036,9 @@
       "qualifiedName": "filter.$or",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "ProcessInstanceIncidentResolutionBatchOperationRequest",
-        "properties",
-        "filter",
+        "ProcessInstanceFilter",
         "allOf",
         "1",
         "properties",
@@ -44116,12 +44095,9 @@
       "qualifiedName": "filter.$or",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "ProcessInstanceMigrationBatchOperationRequest",
-        "properties",
-        "filter",
+        "ProcessInstanceFilter",
         "allOf",
         "1",
         "properties",
@@ -46599,9 +46575,7 @@
         "batch-operations.yaml",
         "components",
         "schemas",
-        "ProcessInstanceMigrationBatchOperationRequest",
-        "properties",
-        "migrationPlan",
+        "ProcessInstanceMigrationBatchOperationPlan",
         "properties",
         "mappingInstructions"
       ],
@@ -46653,9 +46627,7 @@
         "batch-operations.yaml",
         "components",
         "schemas",
-        "ProcessInstanceMigrationBatchOperationRequest",
-        "properties",
-        "migrationPlan",
+        "ProcessInstanceMigrationBatchOperationPlan",
         "properties",
         "targetProcessDefinitionKey"
       ],
@@ -49271,12 +49243,9 @@
       "qualifiedName": "filter.$or",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "ProcessInstanceModificationBatchOperationRequest",
-        "properties",
-        "filter",
+        "ProcessInstanceFilter",
         "allOf",
         "1",
         "properties",
@@ -51903,9 +51872,7 @@
       "path": [
         "components",
         "schemas",
-        "ElementInstanceSearchQuery",
-        "properties",
-        "filter",
+        "ElementInstanceFilter",
         "properties",
         "processDefinitionId"
       ],
@@ -51921,9 +51888,7 @@
       "path": [
         "components",
         "schemas",
-        "ElementInstanceSearchQuery",
-        "properties",
-        "filter",
+        "ElementInstanceFilter",
         "properties",
         "state"
       ],
@@ -52025,9 +51990,7 @@
       "path": [
         "components",
         "schemas",
-        "ElementInstanceSearchQuery",
-        "properties",
-        "filter",
+        "ElementInstanceFilter",
         "properties",
         "type"
       ],
@@ -52043,9 +52006,7 @@
       "path": [
         "components",
         "schemas",
-        "ElementInstanceSearchQuery",
-        "properties",
-        "filter",
+        "ElementInstanceFilter",
         "properties",
         "elementId"
       ],
@@ -52068,9 +52029,7 @@
       "path": [
         "components",
         "schemas",
-        "ElementInstanceSearchQuery",
-        "properties",
-        "filter",
+        "ElementInstanceFilter",
         "properties",
         "elementName"
       ],
@@ -52093,9 +52052,7 @@
       "path": [
         "components",
         "schemas",
-        "ElementInstanceSearchQuery",
-        "properties",
-        "filter",
+        "ElementInstanceFilter",
         "properties",
         "hasIncident"
       ],
@@ -52111,9 +52068,7 @@
       "path": [
         "components",
         "schemas",
-        "ElementInstanceSearchQuery",
-        "properties",
-        "filter",
+        "ElementInstanceFilter",
         "properties",
         "tenantId"
       ],
@@ -52129,9 +52084,7 @@
       "path": [
         "components",
         "schemas",
-        "ElementInstanceSearchQuery",
-        "properties",
-        "filter",
+        "ElementInstanceFilter",
         "properties",
         "elementInstanceKey"
       ],
@@ -52147,9 +52100,7 @@
       "path": [
         "components",
         "schemas",
-        "ElementInstanceSearchQuery",
-        "properties",
-        "filter",
+        "ElementInstanceFilter",
         "properties",
         "processInstanceKey"
       ],
@@ -52165,9 +52116,7 @@
       "path": [
         "components",
         "schemas",
-        "ElementInstanceSearchQuery",
-        "properties",
-        "filter",
+        "ElementInstanceFilter",
         "properties",
         "processDefinitionKey"
       ],
@@ -52183,9 +52132,7 @@
       "path": [
         "components",
         "schemas",
-        "ElementInstanceSearchQuery",
-        "properties",
-        "filter",
+        "ElementInstanceFilter",
         "properties",
         "incidentKey"
       ],
@@ -52201,9 +52148,7 @@
       "path": [
         "components",
         "schemas",
-        "ElementInstanceSearchQuery",
-        "properties",
-        "filter",
+        "ElementInstanceFilter",
         "properties",
         "startDate"
       ],
@@ -52364,9 +52309,7 @@
       "path": [
         "components",
         "schemas",
-        "ElementInstanceSearchQuery",
-        "properties",
-        "filter",
+        "ElementInstanceFilter",
         "properties",
         "endDate"
       ],
@@ -52527,9 +52470,7 @@
       "path": [
         "components",
         "schemas",
-        "ElementInstanceSearchQuery",
-        "properties",
-        "filter",
+        "ElementInstanceFilter",
         "properties",
         "elementInstanceScopeKey"
       ],
@@ -52653,8 +52594,7 @@
         "POST /element-instances/search > response > items[].processInstanceKey",
         "POST /element-instances/search > response > items[].processDefinitionKey",
         "POST /element-instances/search > response > items[].incidentKey",
-        "POST /element-instances/search > response > items[].rootProcessInstanceKey",
-        "POST /element-instances/search > response > items[].agentInstanceKey"
+        "POST /element-instances/search > response > items[].rootProcessInstanceKey"
       ]
     },
     "POST /element-instances/search > response > items[].processDefinitionId": {
@@ -53173,47 +53113,9 @@
       "path": [
         "components",
         "schemas",
-        "DecisionDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "DecisionDefinitionFilter",
         "properties",
         "name"
-      ],
-      "children": []
-    },
-    "POST /decision-definitions/search > request > filter.decisionDefinitionKey": {
-      "version": "8.8",
-      "location": "request",
-      "endpoint": "POST /decision-definitions/search",
-      "property": "decisionDefinitionKey",
-      "qualifiedName": "filter.decisionDefinitionKey",
-      "depth": 1,
-      "path": [
-        "components",
-        "schemas",
-        "DecisionDefinitionSearchQuery",
-        "properties",
-        "filter",
-        "properties",
-        "decisionDefinitionKey"
-      ],
-      "children": []
-    },
-    "POST /decision-definitions/search > request > filter.decisionRequirementsKey": {
-      "version": "8.8",
-      "location": "request",
-      "endpoint": "POST /decision-definitions/search",
-      "property": "decisionRequirementsKey",
-      "qualifiedName": "filter.decisionRequirementsKey",
-      "depth": 1,
-      "path": [
-        "components",
-        "schemas",
-        "DecisionDefinitionSearchQuery",
-        "properties",
-        "filter",
-        "properties",
-        "decisionRequirementsKey"
       ],
       "children": []
     },
@@ -53430,24 +53332,6 @@
       ],
       "children": []
     },
-    "POST /decision-requirements/search > request > filter.decisionRequirementsKey": {
-      "version": "8.8",
-      "location": "request",
-      "endpoint": "POST /decision-requirements/search",
-      "property": "decisionRequirementsKey",
-      "qualifiedName": "filter.decisionRequirementsKey",
-      "depth": 1,
-      "path": [
-        "components",
-        "schemas",
-        "DecisionRequirementsSearchQuery",
-        "properties",
-        "filter",
-        "properties",
-        "decisionRequirementsKey"
-      ],
-      "children": []
-    },
     "POST /decision-requirements/search > request > filter.resourceName": {
       "version": "8.8",
       "location": "request",
@@ -53458,9 +53342,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionRequirementsSearchQuery",
-        "properties",
-        "filter",
+        "DecisionRequirementsFilter",
         "properties",
         "resourceName"
       ],
@@ -53657,9 +53539,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionInstanceSearchQuery",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "decisionEvaluationInstanceKey"
       ],
@@ -53681,9 +53561,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionInstanceSearchQuery",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "evaluationDate"
       ],
@@ -53844,73 +53722,11 @@
       "path": [
         "components",
         "schemas",
-        "DecisionInstanceSearchQuery",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "decisionEvaluationKey"
       ],
       "children": []
-    },
-    "POST /decision-instances/search > request > filter.processDefinitionKey": {
-      "version": "8.8",
-      "location": "request",
-      "endpoint": "POST /decision-instances/search",
-      "property": "processDefinitionKey",
-      "qualifiedName": "filter.processDefinitionKey",
-      "depth": 1,
-      "path": [
-        "components",
-        "schemas",
-        "DecisionInstanceSearchQuery",
-        "properties",
-        "filter",
-        "properties",
-        "processDefinitionKey"
-      ],
-      "children": []
-    },
-    "POST /decision-instances/search > request > filter.processInstanceKey": {
-      "version": "8.8",
-      "location": "request",
-      "endpoint": "POST /decision-instances/search",
-      "property": "processInstanceKey",
-      "qualifiedName": "filter.processInstanceKey",
-      "depth": 1,
-      "path": [
-        "components",
-        "schemas",
-        "DecisionInstanceSearchQuery",
-        "properties",
-        "filter",
-        "properties",
-        "processInstanceKey"
-      ],
-      "children": []
-    },
-    "POST /decision-instances/search > request > filter.decisionDefinitionKey": {
-      "version": "8.8",
-      "location": "request",
-      "endpoint": "POST /decision-instances/search",
-      "property": "decisionDefinitionKey",
-      "qualifiedName": "filter.decisionDefinitionKey",
-      "depth": 1,
-      "path": [
-        "components",
-        "schemas",
-        "DecisionInstanceSearchQuery",
-        "properties",
-        "filter",
-        "properties",
-        "decisionDefinitionKey"
-      ],
-      "children": [
-        "POST /decision-instances/search > request > filter.decisionDefinitionKey.$eq",
-        "POST /decision-instances/search > request > filter.decisionDefinitionKey.$neq",
-        "POST /decision-instances/search > request > filter.decisionDefinitionKey.$exists",
-        "POST /decision-instances/search > request > filter.decisionDefinitionKey.$in",
-        "POST /decision-instances/search > request > filter.decisionDefinitionKey.$notIn"
-      ]
     },
     "POST /decision-instances/search > request > filter.decisionDefinitionKey.$eq": {
       "version": "8.8",
@@ -54007,9 +53823,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionInstanceSearchQuery",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "elementInstanceKey"
       ],
@@ -55060,9 +54874,7 @@
       "path": [
         "components",
         "schemas",
-        "AuthorizationSearchQuery",
-        "properties",
-        "filter",
+        "AuthorizationFilter",
         "properties",
         "ownerId"
       ],
@@ -55078,9 +54890,7 @@
       "path": [
         "components",
         "schemas",
-        "AuthorizationSearchQuery",
-        "properties",
-        "filter",
+        "AuthorizationFilter",
         "properties",
         "ownerType"
       ],
@@ -55096,9 +54906,7 @@
       "path": [
         "components",
         "schemas",
-        "AuthorizationSearchQuery",
-        "properties",
-        "filter",
+        "AuthorizationFilter",
         "properties",
         "resourceIds"
       ],
@@ -55114,9 +54922,7 @@
       "path": [
         "components",
         "schemas",
-        "AuthorizationSearchQuery",
-        "properties",
-        "filter",
+        "AuthorizationFilter",
         "properties",
         "resourceType"
       ],
@@ -56256,9 +56062,7 @@
       "path": [
         "components",
         "schemas",
-        "RoleSearchQueryRequest",
-        "properties",
-        "filter",
+        "RoleFilter",
         "properties",
         "roleId"
       ],
@@ -56274,9 +56078,7 @@
       "path": [
         "components",
         "schemas",
-        "RoleSearchQueryRequest",
-        "properties",
-        "filter",
+        "RoleFilter",
         "properties",
         "name"
       ],
@@ -56882,9 +56684,7 @@
         "mapping-rules.yaml",
         "components",
         "schemas",
-        "MappingRuleSearchQueryRequest",
-        "properties",
-        "filter",
+        "MappingRuleFilter",
         "properties",
         "claimName"
       ],
@@ -56901,9 +56701,7 @@
         "mapping-rules.yaml",
         "components",
         "schemas",
-        "MappingRuleSearchQueryRequest",
-        "properties",
-        "filter",
+        "MappingRuleFilter",
         "properties",
         "claimValue"
       ],
@@ -56920,9 +56718,7 @@
         "mapping-rules.yaml",
         "components",
         "schemas",
-        "MappingRuleSearchQueryRequest",
-        "properties",
-        "filter",
+        "MappingRuleFilter",
         "properties",
         "name"
       ],
@@ -56939,9 +56735,7 @@
         "mapping-rules.yaml",
         "components",
         "schemas",
-        "MappingRuleSearchQueryRequest",
-        "properties",
-        "filter",
+        "MappingRuleFilter",
         "properties",
         "mappingRuleId"
       ],
@@ -57792,9 +57586,7 @@
         "mapping-rules.yaml",
         "components",
         "schemas",
-        "MappingRuleSearchQueryRequest",
-        "properties",
-        "filter",
+        "MappingRuleFilter",
         "properties",
         "claimName"
       ],
@@ -57811,9 +57603,7 @@
         "mapping-rules.yaml",
         "components",
         "schemas",
-        "MappingRuleSearchQueryRequest",
-        "properties",
-        "filter",
+        "MappingRuleFilter",
         "properties",
         "claimValue"
       ],
@@ -57830,9 +57620,7 @@
         "mapping-rules.yaml",
         "components",
         "schemas",
-        "MappingRuleSearchQueryRequest",
-        "properties",
-        "filter",
+        "MappingRuleFilter",
         "properties",
         "name"
       ],
@@ -57849,9 +57637,7 @@
         "mapping-rules.yaml",
         "components",
         "schemas",
-        "MappingRuleSearchQueryRequest",
-        "properties",
-        "filter",
+        "MappingRuleFilter",
         "properties",
         "mappingRuleId"
       ],
@@ -58211,9 +57997,7 @@
         "roles.yaml",
         "components",
         "schemas",
-        "RoleSearchQueryRequest",
-        "properties",
-        "filter",
+        "RoleFilter",
         "properties",
         "roleId"
       ],
@@ -58230,9 +58014,7 @@
         "roles.yaml",
         "components",
         "schemas",
-        "RoleSearchQueryRequest",
-        "properties",
-        "filter",
+        "RoleFilter",
         "properties",
         "name"
       ],
@@ -58834,9 +58616,7 @@
       "path": [
         "components",
         "schemas",
-        "GroupSearchQueryRequest",
-        "properties",
-        "filter",
+        "GroupFilter",
         "properties",
         "groupId"
       ],
@@ -58963,9 +58743,7 @@
       "path": [
         "components",
         "schemas",
-        "GroupSearchQueryRequest",
-        "properties",
-        "filter",
+        "GroupFilter",
         "properties",
         "name"
       ],
@@ -59605,9 +59383,7 @@
       "path": [
         "components",
         "schemas",
-        "MappingRuleSearchQueryRequest",
-        "properties",
-        "filter",
+        "MappingRuleFilter",
         "properties",
         "claimName"
       ],
@@ -59623,9 +59399,7 @@
       "path": [
         "components",
         "schemas",
-        "MappingRuleSearchQueryRequest",
-        "properties",
-        "filter",
+        "MappingRuleFilter",
         "properties",
         "claimValue"
       ],
@@ -59641,9 +59415,7 @@
       "path": [
         "components",
         "schemas",
-        "MappingRuleSearchQueryRequest",
-        "properties",
-        "filter",
+        "MappingRuleFilter",
         "properties",
         "name"
       ],
@@ -59659,9 +59431,7 @@
       "path": [
         "components",
         "schemas",
-        "MappingRuleSearchQueryRequest",
-        "properties",
-        "filter",
+        "MappingRuleFilter",
         "properties",
         "mappingRuleId"
       ],
@@ -60022,9 +59792,7 @@
       "path": [
         "components",
         "schemas",
-        "CorrelatedMessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "CorrelatedMessageSubscriptionFilter",
         "properties",
         "correlationKey"
       ],
@@ -60151,9 +59919,7 @@
       "path": [
         "components",
         "schemas",
-        "CorrelatedMessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "CorrelatedMessageSubscriptionFilter",
         "properties",
         "correlationTime"
       ],
@@ -60314,9 +60080,7 @@
       "path": [
         "components",
         "schemas",
-        "CorrelatedMessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "CorrelatedMessageSubscriptionFilter",
         "properties",
         "elementId"
       ],
@@ -60443,9 +60207,7 @@
       "path": [
         "components",
         "schemas",
-        "CorrelatedMessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "CorrelatedMessageSubscriptionFilter",
         "properties",
         "elementInstanceKey"
       ],
@@ -60552,9 +60314,7 @@
       "path": [
         "components",
         "schemas",
-        "CorrelatedMessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "CorrelatedMessageSubscriptionFilter",
         "properties",
         "messageKey"
       ],
@@ -60661,9 +60421,7 @@
       "path": [
         "components",
         "schemas",
-        "CorrelatedMessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "CorrelatedMessageSubscriptionFilter",
         "properties",
         "messageName"
       ],
@@ -60790,9 +60548,7 @@
       "path": [
         "components",
         "schemas",
-        "CorrelatedMessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "CorrelatedMessageSubscriptionFilter",
         "properties",
         "partitionId"
       ],
@@ -60953,9 +60709,7 @@
       "path": [
         "components",
         "schemas",
-        "CorrelatedMessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "CorrelatedMessageSubscriptionFilter",
         "properties",
         "processDefinitionId"
       ],
@@ -61082,9 +60836,7 @@
       "path": [
         "components",
         "schemas",
-        "CorrelatedMessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "CorrelatedMessageSubscriptionFilter",
         "properties",
         "processDefinitionKey"
       ],
@@ -61191,9 +60943,7 @@
       "path": [
         "components",
         "schemas",
-        "CorrelatedMessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "CorrelatedMessageSubscriptionFilter",
         "properties",
         "processInstanceKey"
       ],
@@ -61300,9 +61050,7 @@
       "path": [
         "components",
         "schemas",
-        "CorrelatedMessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "CorrelatedMessageSubscriptionFilter",
         "properties",
         "subscriptionKey"
       ],
@@ -61404,9 +61152,7 @@
       "path": [
         "components",
         "schemas",
-        "CorrelatedMessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "CorrelatedMessageSubscriptionFilter",
         "properties",
         "tenantId"
       ],
@@ -62019,9 +61765,7 @@
       "path": [
         "components",
         "schemas",
-        "MessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "messageSubscriptionKey"
       ],
@@ -62123,9 +61867,7 @@
       "path": [
         "components",
         "schemas",
-        "MessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "processDefinitionId"
       ],
@@ -62252,9 +61994,7 @@
       "path": [
         "components",
         "schemas",
-        "MessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "processInstanceKey"
       ],
@@ -62361,9 +62101,7 @@
       "path": [
         "components",
         "schemas",
-        "MessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "elementId"
       ],
@@ -62490,9 +62228,7 @@
       "path": [
         "components",
         "schemas",
-        "MessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "elementInstanceKey"
       ],
@@ -62599,9 +62335,7 @@
       "path": [
         "components",
         "schemas",
-        "MessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "messageSubscriptionState"
       ],
@@ -62703,9 +62437,7 @@
       "path": [
         "components",
         "schemas",
-        "MessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "lastUpdatedDate"
       ],
@@ -62866,9 +62598,7 @@
       "path": [
         "components",
         "schemas",
-        "MessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "messageName"
       ],
@@ -62995,9 +62725,7 @@
       "path": [
         "components",
         "schemas",
-        "MessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "correlationKey"
       ],
@@ -63124,9 +62852,7 @@
       "path": [
         "components",
         "schemas",
-        "MessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "tenantId"
       ],
@@ -63968,9 +63694,7 @@
       "path": [
         "components",
         "schemas",
-        "UserSearchQueryRequest",
-        "properties",
-        "filter",
+        "UserFilter",
         "properties",
         "username"
       ],
@@ -64097,9 +63821,7 @@
       "path": [
         "components",
         "schemas",
-        "UserSearchQueryRequest",
-        "properties",
-        "filter",
+        "UserFilter",
         "properties",
         "name"
       ],
@@ -64226,9 +63948,7 @@
       "path": [
         "components",
         "schemas",
-        "UserSearchQueryRequest",
-        "properties",
-        "filter",
+        "UserFilter",
         "properties",
         "email"
       ],
@@ -64866,9 +64586,7 @@
       "path": [
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "elementId"
       ],
@@ -65027,9 +64745,7 @@
       "path": [
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "incidentKey"
       ],
@@ -65039,54 +64755,6 @@
         "POST /incidents/search > request > filter.incidentKey.$exists",
         "POST /incidents/search > request > filter.incidentKey.$in",
         "POST /incidents/search > request > filter.incidentKey.$notIn"
-      ]
-    },
-    "POST /incidents/search > request > filter.processDefinitionKey": {
-      "version": "8.8",
-      "location": "request",
-      "endpoint": "POST /incidents/search",
-      "property": "processDefinitionKey",
-      "qualifiedName": "filter.processDefinitionKey",
-      "depth": 1,
-      "path": [
-        "components",
-        "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
-        "properties",
-        "processDefinitionKey"
-      ],
-      "children": [
-        "POST /incidents/search > request > filter.processDefinitionKey.$eq",
-        "POST /incidents/search > request > filter.processDefinitionKey.$neq",
-        "POST /incidents/search > request > filter.processDefinitionKey.$exists",
-        "POST /incidents/search > request > filter.processDefinitionKey.$in",
-        "POST /incidents/search > request > filter.processDefinitionKey.$notIn"
-      ]
-    },
-    "POST /incidents/search > request > filter.processInstanceKey": {
-      "version": "8.8",
-      "location": "request",
-      "endpoint": "POST /incidents/search",
-      "property": "processInstanceKey",
-      "qualifiedName": "filter.processInstanceKey",
-      "depth": 1,
-      "path": [
-        "components",
-        "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
-        "properties",
-        "processInstanceKey"
-      ],
-      "children": [
-        "POST /incidents/search > request > filter.processInstanceKey.$eq",
-        "POST /incidents/search > request > filter.processInstanceKey.$neq",
-        "POST /incidents/search > request > filter.processInstanceKey.$exists",
-        "POST /incidents/search > request > filter.processInstanceKey.$in",
-        "POST /incidents/search > request > filter.processInstanceKey.$notIn"
       ]
     },
     "POST /incidents/search > request > filter.elementInstanceKey": {
@@ -65099,9 +64767,7 @@
       "path": [
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "elementInstanceKey"
       ],
@@ -65111,30 +64777,6 @@
         "POST /incidents/search > request > filter.elementInstanceKey.$exists",
         "POST /incidents/search > request > filter.elementInstanceKey.$in",
         "POST /incidents/search > request > filter.elementInstanceKey.$notIn"
-      ]
-    },
-    "POST /incidents/search > request > filter.jobKey": {
-      "version": "8.8",
-      "location": "request",
-      "endpoint": "POST /incidents/search",
-      "property": "jobKey",
-      "qualifiedName": "filter.jobKey",
-      "depth": 1,
-      "path": [
-        "components",
-        "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
-        "properties",
-        "jobKey"
-      ],
-      "children": [
-        "POST /incidents/search > request > filter.jobKey.$eq",
-        "POST /incidents/search > request > filter.jobKey.$neq",
-        "POST /incidents/search > request > filter.jobKey.$exists",
-        "POST /incidents/search > request > filter.jobKey.$in",
-        "POST /incidents/search > request > filter.jobKey.$notIn"
       ]
     },
     "POST /incidents/search > request > page.after": {
@@ -65744,9 +65386,7 @@
       "path": [
         "components",
         "schemas",
-        "BatchOperationSearchQuery",
-        "properties",
-        "filter",
+        "BatchOperationFilter",
         "properties",
         "batchOperationKey"
       ],
@@ -65853,9 +65493,7 @@
       "path": [
         "components",
         "schemas",
-        "BatchOperationSearchQuery",
-        "properties",
-        "filter",
+        "BatchOperationFilter",
         "properties",
         "operationType"
       ],
@@ -65957,9 +65595,7 @@
       "path": [
         "components",
         "schemas",
-        "BatchOperationSearchQuery",
-        "properties",
-        "filter",
+        "BatchOperationFilter",
         "properties",
         "state"
       ],
@@ -66538,9 +66174,7 @@
       "path": [
         "components",
         "schemas",
-        "BatchOperationItemSearchQuery",
-        "properties",
-        "filter",
+        "BatchOperationItemFilter",
         "properties",
         "batchOperationKey"
       ],
@@ -66647,9 +66281,7 @@
       "path": [
         "components",
         "schemas",
-        "BatchOperationItemSearchQuery",
-        "properties",
-        "filter",
+        "BatchOperationItemFilter",
         "properties",
         "itemKey"
       ],
@@ -66756,9 +66388,7 @@
       "path": [
         "components",
         "schemas",
-        "BatchOperationItemSearchQuery",
-        "properties",
-        "filter",
+        "BatchOperationItemFilter",
         "properties",
         "processInstanceKey"
       ],
@@ -66865,9 +66495,7 @@
       "path": [
         "components",
         "schemas",
-        "BatchOperationItemSearchQuery",
-        "properties",
-        "filter",
+        "BatchOperationItemFilter",
         "properties",
         "state"
       ],
@@ -67383,9 +67011,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "auditLogKey"
       ],
@@ -67492,9 +67118,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "processDefinitionKey"
       ],
@@ -67601,9 +67225,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "processInstanceKey"
       ],
@@ -67710,9 +67332,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "elementInstanceKey"
       ],
@@ -67819,9 +67439,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "operationType"
       ],
@@ -67923,9 +67541,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "result"
       ],
@@ -68027,9 +67643,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "timestamp"
       ],
@@ -68190,9 +67804,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "actorId"
       ],
@@ -68319,9 +67931,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "actorType"
       ],
@@ -68423,9 +68033,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "agentElementId"
       ],
@@ -68552,9 +68160,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "entityKey"
       ],
@@ -68656,9 +68262,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "entityType"
       ],
@@ -68760,9 +68364,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "tenantId"
       ],
@@ -68889,9 +68491,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "category"
       ],
@@ -68993,9 +68593,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "deploymentKey"
       ],
@@ -69102,9 +68700,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "formKey"
       ],
@@ -69211,9 +68807,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "resourceKey"
       ],
@@ -69320,9 +68914,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "batchOperationType"
       ],
@@ -69429,9 +69021,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "processDefinitionId"
       ],
@@ -69558,9 +69148,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "jobKey"
       ],
@@ -69667,9 +69255,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "userTaskKey"
       ],
@@ -69776,9 +69362,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "decisionRequirementsId"
       ],
@@ -69905,9 +69489,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "decisionRequirementsKey"
       ],
@@ -70014,9 +69596,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "decisionDefinitionId"
       ],
@@ -70143,9 +69723,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "decisionDefinitionKey"
       ],
@@ -70252,9 +69830,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "decisionEvaluationKey"
       ],
@@ -70361,9 +69937,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "relatedEntityKey"
       ],
@@ -70465,9 +70039,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "relatedEntityType"
       ],
@@ -70569,9 +70141,7 @@
       "path": [
         "components",
         "schemas",
-        "AuditLogSearchQueryRequest",
-        "properties",
-        "filter",
+        "AuditLogFilter",
         "properties",
         "entityDescription"
       ],
@@ -71934,9 +71504,7 @@
       "path": [
         "components",
         "schemas",
-        "AuthorizationSearchQuery",
-        "properties",
-        "filter",
+        "AuthorizationFilter",
         "properties",
         "resourcePropertyNames"
       ],
@@ -72000,9 +71568,7 @@
       "path": [
         "components",
         "schemas",
-        "BatchOperationItemSearchQuery",
-        "properties",
-        "filter",
+        "BatchOperationItemFilter",
         "properties",
         "operationType"
       ],
@@ -72120,9 +71686,7 @@
       "path": [
         "components",
         "schemas",
-        "BatchOperationSearchQuery",
-        "properties",
-        "filter",
+        "BatchOperationFilter",
         "properties",
         "actorType"
       ],
@@ -72138,9 +71702,7 @@
       "path": [
         "components",
         "schemas",
-        "BatchOperationSearchQuery",
-        "properties",
-        "filter",
+        "BatchOperationFilter",
         "properties",
         "actorId"
       ],
@@ -72644,9 +72206,7 @@
       "path": [
         "components",
         "schemas",
-        "ClusterVariableSearchQueryRequest",
-        "properties",
-        "filter",
+        "ClusterVariableSearchQueryFilterRequest",
         "properties",
         "name"
       ],
@@ -72773,9 +72333,7 @@
       "path": [
         "components",
         "schemas",
-        "ClusterVariableSearchQueryRequest",
-        "properties",
-        "filter",
+        "ClusterVariableSearchQueryFilterRequest",
         "properties",
         "value"
       ],
@@ -72902,9 +72460,7 @@
       "path": [
         "components",
         "schemas",
-        "ClusterVariableSearchQueryRequest",
-        "properties",
-        "filter",
+        "ClusterVariableSearchQueryFilterRequest",
         "properties",
         "scope"
       ],
@@ -73006,9 +72562,7 @@
       "path": [
         "components",
         "schemas",
-        "ClusterVariableSearchQueryRequest",
-        "properties",
-        "filter",
+        "ClusterVariableSearchQueryFilterRequest",
         "properties",
         "tenantId"
       ],
@@ -73135,9 +72689,7 @@
       "path": [
         "components",
         "schemas",
-        "ClusterVariableSearchQueryRequest",
-        "properties",
-        "filter",
+        "ClusterVariableSearchQueryFilterRequest",
         "properties",
         "isTruncated"
       ],
@@ -73856,9 +73408,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "DecisionDefinitionFilter",
         "properties",
         "isLatestVersion"
       ],
@@ -73874,9 +73424,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "DecisionDefinitionFilter",
         "properties",
         "decisionRequirementsName"
       ],
@@ -73892,9 +73440,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionDefinitionSearchQuery",
-        "properties",
-        "filter",
+        "DecisionDefinitionFilter",
         "properties",
         "decisionRequirementsVersion"
       ],
@@ -74155,9 +73701,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionInstanceSearchQuery",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "rootDecisionDefinitionKey"
       ],
@@ -74264,9 +73808,7 @@
       "path": [
         "components",
         "schemas",
-        "DecisionInstanceSearchQuery",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "decisionRequirementsKey"
       ],
@@ -74517,12 +74059,9 @@
       "qualifiedName": "filter.decisionEvaluationInstanceKey",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "DecisionInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "decisionEvaluationInstanceKey"
       ],
@@ -74627,12 +74166,9 @@
       "qualifiedName": "filter.state",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "DecisionInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "state"
       ],
@@ -74749,12 +74285,9 @@
       "qualifiedName": "filter.evaluationFailure",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "DecisionInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "evaluationFailure"
       ],
@@ -74768,12 +74301,9 @@
       "qualifiedName": "filter.evaluationDate",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "DecisionInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "evaluationDate"
       ],
@@ -74932,12 +74462,9 @@
       "qualifiedName": "filter.decisionDefinitionId",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "DecisionInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "decisionDefinitionId"
       ],
@@ -74951,12 +74478,9 @@
       "qualifiedName": "filter.decisionDefinitionName",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "DecisionInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "decisionDefinitionName"
       ],
@@ -74970,12 +74494,9 @@
       "qualifiedName": "filter.decisionDefinitionVersion",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "DecisionInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "decisionDefinitionVersion"
       ],
@@ -74989,12 +74510,9 @@
       "qualifiedName": "filter.decisionDefinitionType",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "DecisionInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "decisionDefinitionType"
       ],
@@ -75008,12 +74526,9 @@
       "qualifiedName": "filter.tenantId",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "DecisionInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "tenantId"
       ],
@@ -75027,12 +74542,9 @@
       "qualifiedName": "filter.decisionEvaluationKey",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "DecisionInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "decisionEvaluationKey"
       ],
@@ -75046,12 +74558,9 @@
       "qualifiedName": "filter.processDefinitionKey",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "DecisionInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "processDefinitionKey"
       ],
@@ -75065,12 +74574,9 @@
       "qualifiedName": "filter.processInstanceKey",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "DecisionInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "processInstanceKey"
       ],
@@ -75084,12 +74590,9 @@
       "qualifiedName": "filter.decisionDefinitionKey",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "DecisionInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "decisionDefinitionKey"
       ],
@@ -75194,12 +74697,9 @@
       "qualifiedName": "filter.elementInstanceKey",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "DecisionInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "elementInstanceKey"
       ],
@@ -75304,12 +74804,9 @@
       "qualifiedName": "filter.rootDecisionDefinitionKey",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "DecisionInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "rootDecisionDefinitionKey"
       ],
@@ -75414,12 +74911,9 @@
       "qualifiedName": "filter.decisionRequirementsKey",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "DecisionInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "DecisionInstanceFilter",
         "properties",
         "decisionRequirementsKey"
       ],
@@ -75726,9 +75220,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "processDefinitionId"
       ],
@@ -75856,9 +75348,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "errorType"
       ],
@@ -75984,9 +75474,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "errorMessage"
       ],
@@ -76114,9 +75602,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "elementId"
       ],
@@ -76244,9 +75730,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "creationTime"
       ],
@@ -76408,9 +75892,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "state"
       ],
@@ -76536,9 +76018,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "tenantId"
       ],
@@ -76666,9 +76146,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "incidentKey"
       ],
@@ -76776,9 +76254,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "processDefinitionKey"
       ],
@@ -76886,9 +76362,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "processInstanceKey"
       ],
@@ -76996,9 +76470,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "elementInstanceKey"
       ],
@@ -77106,9 +76578,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "jobKey"
       ],
@@ -78348,9 +77818,7 @@
       "path": [
         "components",
         "schemas",
-        "GlobalTaskListenerSearchQueryRequest",
-        "properties",
-        "filter",
+        "GlobalTaskListenerSearchQueryFilterRequest",
         "properties",
         "id"
       ],
@@ -78477,9 +77945,7 @@
       "path": [
         "components",
         "schemas",
-        "GlobalTaskListenerSearchQueryRequest",
-        "properties",
-        "filter",
+        "GlobalTaskListenerSearchQueryFilterRequest",
         "properties",
         "type"
       ],
@@ -78606,9 +78072,7 @@
       "path": [
         "components",
         "schemas",
-        "GlobalTaskListenerSearchQueryRequest",
-        "properties",
-        "filter",
+        "GlobalTaskListenerSearchQueryFilterRequest",
         "properties",
         "retries"
       ],
@@ -78769,9 +78233,7 @@
       "path": [
         "components",
         "schemas",
-        "GlobalTaskListenerSearchQueryRequest",
-        "properties",
-        "filter",
+        "GlobalTaskListenerSearchQueryFilterRequest",
         "properties",
         "eventTypes"
       ],
@@ -78873,9 +78335,7 @@
       "path": [
         "components",
         "schemas",
-        "GlobalTaskListenerSearchQueryRequest",
-        "properties",
-        "filter",
+        "GlobalTaskListenerSearchQueryFilterRequest",
         "properties",
         "afterNonGlobal"
       ],
@@ -78891,9 +78351,7 @@
       "path": [
         "components",
         "schemas",
-        "GlobalTaskListenerSearchQueryRequest",
-        "properties",
-        "filter",
+        "GlobalTaskListenerSearchQueryFilterRequest",
         "properties",
         "priority"
       ],
@@ -79054,9 +78512,7 @@
       "path": [
         "components",
         "schemas",
-        "GlobalTaskListenerSearchQueryRequest",
-        "properties",
-        "filter",
+        "GlobalTaskListenerSearchQueryFilterRequest",
         "properties",
         "source"
       ],
@@ -80557,9 +80013,7 @@
       "path": [
         "components",
         "schemas",
-        "IncidentProcessInstanceStatisticsByDefinitionQuery",
-        "properties",
-        "filter",
+        "IncidentProcessInstanceStatisticsByDefinitionFilter",
         "properties",
         "errorHashCode"
       ],
@@ -80592,11 +80046,10 @@
       "qualifiedName": "page.from",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "IncidentProcessInstanceStatisticsByDefinitionQuery",
-        "properties",
-        "page",
+        "OffsetPagination",
         "properties",
         "from"
       ],
@@ -80610,11 +80063,10 @@
       "qualifiedName": "page.limit",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "IncidentProcessInstanceStatisticsByDefinitionQuery",
-        "properties",
-        "page",
+        "OffsetPagination",
         "properties",
         "limit"
       ],
@@ -80907,11 +80359,10 @@
       "qualifiedName": "page.from",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "IncidentProcessInstanceStatisticsByErrorQuery",
-        "properties",
-        "page",
+        "OffsetPagination",
         "properties",
         "from"
       ],
@@ -80925,11 +80376,10 @@
       "qualifiedName": "page.limit",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "IncidentProcessInstanceStatisticsByErrorQuery",
-        "properties",
-        "page",
+        "OffsetPagination",
         "properties",
         "limit"
       ],
@@ -81186,9 +80636,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "creationTime"
       ],
@@ -81349,9 +80797,7 @@
       "path": [
         "components",
         "schemas",
-        "JobSearchQuery",
-        "properties",
-        "filter",
+        "JobFilter",
         "properties",
         "lastUpdateTime"
       ],
@@ -81925,11 +81371,10 @@
       "qualifiedName": "page.after",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "JobTypeStatisticsQuery",
-        "properties",
-        "page",
+        "CursorForwardPagination",
         "properties",
         "after"
       ],
@@ -81943,11 +81388,10 @@
       "qualifiedName": "page.limit",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "JobTypeStatisticsQuery",
-        "properties",
-        "page",
+        "CursorForwardPagination",
         "properties",
         "limit"
       ],
@@ -82345,11 +81789,10 @@
       "qualifiedName": "page.after",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "JobWorkerStatisticsQuery",
-        "properties",
-        "page",
+        "CursorForwardPagination",
         "properties",
         "after"
       ],
@@ -82363,11 +81806,10 @@
       "qualifiedName": "page.limit",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "JobWorkerStatisticsQuery",
-        "properties",
-        "page",
+        "CursorForwardPagination",
         "properties",
         "limit"
       ],
@@ -82765,11 +82207,10 @@
       "qualifiedName": "page.after",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "JobTimeSeriesStatisticsQuery",
-        "properties",
-        "page",
+        "CursorForwardPagination",
         "properties",
         "after"
       ],
@@ -82783,11 +82224,10 @@
       "qualifiedName": "page.limit",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "JobTimeSeriesStatisticsQuery",
-        "properties",
-        "page",
+        "CursorForwardPagination",
         "properties",
         "limit"
       ],
@@ -83424,11 +82864,10 @@
       "qualifiedName": "page.after",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "JobErrorStatisticsQuery",
-        "properties",
-        "page",
+        "CursorForwardPagination",
         "properties",
         "after"
       ],
@@ -83442,11 +82881,10 @@
       "qualifiedName": "page.limit",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "JobErrorStatisticsQuery",
-        "properties",
-        "page",
+        "CursorForwardPagination",
         "properties",
         "limit"
       ],
@@ -83620,9 +83058,7 @@
       "path": [
         "components",
         "schemas",
-        "MessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "processDefinitionKey"
       ],
@@ -83762,11 +83198,10 @@
       "qualifiedName": "page.after",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "page",
+        "CursorForwardPagination",
         "properties",
         "after"
       ],
@@ -83780,11 +83215,10 @@
       "qualifiedName": "page.limit",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "page",
+        "CursorForwardPagination",
         "properties",
         "limit"
       ],
@@ -83831,11 +83265,10 @@
       "qualifiedName": "filter.messageSubscriptionKey",
       "depth": 1,
       "path": [
+        "messages.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "messageSubscriptionKey"
       ],
@@ -83940,11 +83373,10 @@
       "qualifiedName": "filter.processDefinitionKey",
       "depth": 1,
       "path": [
+        "messages.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "processDefinitionKey"
       ],
@@ -84049,11 +83481,10 @@
       "qualifiedName": "filter.processDefinitionId",
       "depth": 1,
       "path": [
+        "messages.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "processDefinitionId"
       ],
@@ -84178,11 +83609,10 @@
       "qualifiedName": "filter.processInstanceKey",
       "depth": 1,
       "path": [
+        "messages.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "processInstanceKey"
       ],
@@ -84287,11 +83717,10 @@
       "qualifiedName": "filter.elementId",
       "depth": 1,
       "path": [
+        "messages.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "elementId"
       ],
@@ -84416,11 +83845,10 @@
       "qualifiedName": "filter.elementInstanceKey",
       "depth": 1,
       "path": [
+        "messages.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "elementInstanceKey"
       ],
@@ -84525,11 +83953,10 @@
       "qualifiedName": "filter.messageSubscriptionState",
       "depth": 1,
       "path": [
+        "messages.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "messageSubscriptionState"
       ],
@@ -84634,11 +84061,10 @@
       "qualifiedName": "filter.lastUpdatedDate",
       "depth": 1,
       "path": [
+        "messages.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "lastUpdatedDate"
       ],
@@ -84797,11 +84223,10 @@
       "qualifiedName": "filter.messageName",
       "depth": 1,
       "path": [
+        "messages.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "messageName"
       ],
@@ -84926,11 +84351,10 @@
       "qualifiedName": "filter.correlationKey",
       "depth": 1,
       "path": [
+        "messages.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "correlationKey"
       ],
@@ -85055,11 +84479,10 @@
       "qualifiedName": "filter.tenantId",
       "depth": 1,
       "path": [
+        "messages.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "tenantId"
       ],
@@ -85395,11 +84818,10 @@
       "qualifiedName": "page.from",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionInstanceStatisticsQuery",
-        "properties",
-        "page",
+        "OffsetPagination",
         "properties",
         "from"
       ],
@@ -85413,11 +84835,10 @@
       "qualifiedName": "page.limit",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionInstanceStatisticsQuery",
-        "properties",
-        "page",
+        "OffsetPagination",
         "properties",
         "limit"
       ],
@@ -85966,11 +85387,10 @@
       "qualifiedName": "page.from",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionInstanceVersionStatisticsQuery",
-        "properties",
-        "page",
+        "OffsetPagination",
         "properties",
         "from"
       ],
@@ -85984,11 +85404,10 @@
       "qualifiedName": "page.limit",
       "depth": 1,
       "path": [
+        "search-models.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionInstanceVersionStatisticsQuery",
-        "properties",
-        "page",
+        "OffsetPagination",
         "properties",
         "limit"
       ],
@@ -86074,9 +85493,7 @@
       "path": [
         "components",
         "schemas",
-        "ProcessDefinitionInstanceVersionStatisticsQuery",
-        "properties",
-        "filter",
+        "ProcessDefinitionInstanceVersionStatisticsFilter",
         "properties",
         "processDefinitionId"
       ],
@@ -86092,9 +85509,7 @@
       "path": [
         "components",
         "schemas",
-        "ProcessDefinitionInstanceVersionStatisticsQuery",
-        "properties",
-        "filter",
+        "ProcessDefinitionInstanceVersionStatisticsFilter",
         "properties",
         "tenantId"
       ],
@@ -89332,12 +88747,9 @@
       "qualifiedName": "filter.$or",
       "depth": 1,
       "path": [
-        "batch-operations.yaml",
         "components",
         "schemas",
-        "ProcessInstanceDeletionBatchOperationRequest",
-        "properties",
-        "filter",
+        "ProcessInstanceFilter",
         "allOf",
         "1",
         "properties",
@@ -93184,9 +92596,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "processDefinitionId"
       ],
@@ -93314,9 +92724,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "errorType"
       ],
@@ -93442,9 +92850,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "errorMessage"
       ],
@@ -93572,9 +92978,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "elementId"
       ],
@@ -93702,9 +93106,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "creationTime"
       ],
@@ -93866,9 +93268,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "state"
       ],
@@ -93994,9 +93394,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "tenantId"
       ],
@@ -94124,9 +93522,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "incidentKey"
       ],
@@ -94234,9 +93630,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "processDefinitionKey"
       ],
@@ -94344,9 +93738,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "processInstanceKey"
       ],
@@ -94454,9 +93846,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "elementInstanceKey"
       ],
@@ -94564,9 +93954,7 @@
         "incidents.yaml",
         "components",
         "schemas",
-        "IncidentSearchQuery",
-        "properties",
-        "filter",
+        "IncidentFilter",
         "properties",
         "jobKey"
       ],
@@ -94978,11 +94366,10 @@
       "qualifiedName": "batchOperation.batchOperationKey",
       "depth": 1,
       "path": [
+        "batch-operations.yaml",
         "components",
         "schemas",
-        "DeleteResourceResponse",
-        "properties",
-        "batchOperation",
+        "BatchOperationCreatedResult",
         "properties",
         "batchOperationKey"
       ],
@@ -94996,11 +94383,10 @@
       "qualifiedName": "batchOperation.batchOperationType",
       "depth": 1,
       "path": [
+        "batch-operations.yaml",
         "components",
         "schemas",
-        "DeleteResourceResponse",
-        "properties",
-        "batchOperation",
+        "BatchOperationCreatedResult",
         "properties",
         "batchOperationType"
       ],
@@ -95255,9 +94641,7 @@
       "path": [
         "components",
         "schemas",
-        "UserTaskSearchQuery",
-        "properties",
-        "filter",
+        "UserTaskFilter",
         "properties",
         "tags"
       ],
@@ -96879,9 +96263,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceCreationRequest",
-        "properties",
-        "definition",
+        "AgentInstanceDefinition",
         "properties",
         "model"
       ],
@@ -96897,9 +96279,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceCreationRequest",
-        "properties",
-        "definition",
+        "AgentInstanceDefinition",
         "properties",
         "provider"
       ],
@@ -96915,9 +96295,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceCreationRequest",
-        "properties",
-        "definition",
+        "AgentInstanceDefinition",
         "properties",
         "systemPrompt"
       ],
@@ -96953,9 +96331,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceCreationRequest",
-        "properties",
-        "limits",
+        "AgentInstanceLimits",
         "properties",
         "maxModelCalls"
       ],
@@ -96971,9 +96347,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceCreationRequest",
-        "properties",
-        "limits",
+        "AgentInstanceLimits",
         "properties",
         "maxToolCalls"
       ],
@@ -96989,9 +96363,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceCreationRequest",
-        "properties",
-        "limits",
+        "AgentInstanceLimits",
         "properties",
         "maxTokens"
       ],
@@ -97075,9 +96447,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "definition",
+        "AgentInstanceDefinition",
         "properties",
         "model"
       ],
@@ -97093,9 +96463,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "definition",
+        "AgentInstanceDefinition",
         "properties",
         "provider"
       ],
@@ -97111,9 +96479,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "definition",
+        "AgentInstanceDefinition",
         "properties",
         "systemPrompt"
       ],
@@ -97150,9 +96516,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "metrics",
+        "AgentInstanceMetrics",
         "properties",
         "inputTokens"
       ],
@@ -97168,9 +96532,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "metrics",
+        "AgentInstanceMetrics",
         "properties",
         "outputTokens"
       ],
@@ -97186,9 +96548,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "metrics",
+        "AgentInstanceMetrics",
         "properties",
         "modelCalls"
       ],
@@ -97204,9 +96564,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "metrics",
+        "AgentInstanceMetrics",
         "properties",
         "toolCalls"
       ],
@@ -97242,9 +96600,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "limits",
+        "AgentInstanceLimits",
         "properties",
         "maxModelCalls"
       ],
@@ -97260,9 +96616,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "limits",
+        "AgentInstanceLimits",
         "properties",
         "maxToolCalls"
       ],
@@ -97278,9 +96632,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "limits",
+        "AgentInstanceLimits",
         "properties",
         "maxTokens"
       ],
@@ -97466,6 +96818,22 @@
       ],
       "children": []
     },
+    "GET /agent-instances/{agentInstanceKey} > response > elementInstanceKeys": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /agent-instances/{agentInstanceKey}",
+      "property": "elementInstanceKeys",
+      "qualifiedName": "elementInstanceKeys",
+      "depth": 0,
+      "path": [
+        "components",
+        "schemas",
+        "AgentInstanceResult",
+        "properties",
+        "elementInstanceKeys"
+      ],
+      "children": []
+    },
     "PATCH /agent-instances/{agentInstanceKey} > request > status": {
       "version": "8.10",
       "location": "request",
@@ -97513,9 +96881,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceUpdateRequest",
-        "properties",
-        "metrics",
+        "AgentInstanceMetricsDelta",
         "properties",
         "inputTokens"
       ],
@@ -97531,9 +96897,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceUpdateRequest",
-        "properties",
-        "metrics",
+        "AgentInstanceMetricsDelta",
         "properties",
         "outputTokens"
       ],
@@ -97549,9 +96913,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceUpdateRequest",
-        "properties",
-        "metrics",
+        "AgentInstanceMetricsDelta",
         "properties",
         "modelCalls"
       ],
@@ -97567,9 +96929,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceUpdateRequest",
-        "properties",
-        "metrics",
+        "AgentInstanceMetricsDelta",
         "properties",
         "toolCalls"
       ],
@@ -97717,7 +97077,8 @@
         "POST /agent-instances/search > request > filter.tenantId",
         "POST /agent-instances/search > request > filter.creationDate",
         "POST /agent-instances/search > request > filter.lastUpdatedDate",
-        "POST /agent-instances/search > request > filter.completionDate"
+        "POST /agent-instances/search > request > filter.completionDate",
+        "POST /agent-instances/search > request > filter.elementInstanceKeys"
       ]
     },
     "POST /agent-instances/search > request > filter.agentInstanceKey": {
@@ -97730,9 +97091,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceSearchQuery",
-        "properties",
-        "filter",
+        "AgentInstanceFilter",
         "properties",
         "agentInstanceKey"
       ],
@@ -97839,9 +97198,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceSearchQuery",
-        "properties",
-        "filter",
+        "AgentInstanceFilter",
         "properties",
         "status"
       ],
@@ -97943,9 +97300,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceSearchQuery",
-        "properties",
-        "filter",
+        "AgentInstanceFilter",
         "properties",
         "elementId"
       ],
@@ -98070,9 +97425,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceSearchQuery",
-        "properties",
-        "filter",
+        "AgentInstanceFilter",
         "properties",
         "processInstanceKey"
       ],
@@ -98179,9 +97532,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceSearchQuery",
-        "properties",
-        "filter",
+        "AgentInstanceFilter",
         "properties",
         "processDefinitionKey"
       ],
@@ -98288,9 +97639,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceSearchQuery",
-        "properties",
-        "filter",
+        "AgentInstanceFilter",
         "properties",
         "tenantId"
       ],
@@ -98417,9 +97766,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceSearchQuery",
-        "properties",
-        "filter",
+        "AgentInstanceFilter",
         "properties",
         "creationDate"
       ],
@@ -98580,9 +97927,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceSearchQuery",
-        "properties",
-        "filter",
+        "AgentInstanceFilter",
         "properties",
         "lastUpdatedDate"
       ],
@@ -98743,9 +98088,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceSearchQuery",
-        "properties",
-        "filter",
+        "AgentInstanceFilter",
         "properties",
         "completionDate"
       ],
@@ -98896,6 +98239,113 @@
       ],
       "children": []
     },
+    "POST /agent-instances/search > request > filter.elementInstanceKeys": {
+      "version": "8.10",
+      "location": "request",
+      "endpoint": "POST /agent-instances/search",
+      "property": "elementInstanceKeys",
+      "qualifiedName": "filter.elementInstanceKeys",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "AgentInstanceFilter",
+        "properties",
+        "elementInstanceKeys"
+      ],
+      "children": [
+        "POST /agent-instances/search > request > filter.elementInstanceKeys[].$eq",
+        "POST /agent-instances/search > request > filter.elementInstanceKeys[].$neq",
+        "POST /agent-instances/search > request > filter.elementInstanceKeys[].$exists",
+        "POST /agent-instances/search > request > filter.elementInstanceKeys[].$in",
+        "POST /agent-instances/search > request > filter.elementInstanceKeys[].$notIn"
+      ]
+    },
+    "POST /agent-instances/search > request > filter.elementInstanceKeys[].$eq": {
+      "version": "8.10",
+      "location": "request",
+      "endpoint": "POST /agent-instances/search",
+      "property": "$eq",
+      "qualifiedName": "filter.elementInstanceKeys[].$eq",
+      "depth": 2,
+      "path": [
+        "keys.yaml",
+        "components",
+        "schemas",
+        "AdvancedElementInstanceKeyFilter",
+        "properties",
+        "$eq"
+      ],
+      "children": []
+    },
+    "POST /agent-instances/search > request > filter.elementInstanceKeys[].$neq": {
+      "version": "8.10",
+      "location": "request",
+      "endpoint": "POST /agent-instances/search",
+      "property": "$neq",
+      "qualifiedName": "filter.elementInstanceKeys[].$neq",
+      "depth": 2,
+      "path": [
+        "keys.yaml",
+        "components",
+        "schemas",
+        "AdvancedElementInstanceKeyFilter",
+        "properties",
+        "$neq"
+      ],
+      "children": []
+    },
+    "POST /agent-instances/search > request > filter.elementInstanceKeys[].$exists": {
+      "version": "8.10",
+      "location": "request",
+      "endpoint": "POST /agent-instances/search",
+      "property": "$exists",
+      "qualifiedName": "filter.elementInstanceKeys[].$exists",
+      "depth": 2,
+      "path": [
+        "keys.yaml",
+        "components",
+        "schemas",
+        "AdvancedElementInstanceKeyFilter",
+        "properties",
+        "$exists"
+      ],
+      "children": []
+    },
+    "POST /agent-instances/search > request > filter.elementInstanceKeys[].$in": {
+      "version": "8.10",
+      "location": "request",
+      "endpoint": "POST /agent-instances/search",
+      "property": "$in",
+      "qualifiedName": "filter.elementInstanceKeys[].$in",
+      "depth": 2,
+      "path": [
+        "keys.yaml",
+        "components",
+        "schemas",
+        "AdvancedElementInstanceKeyFilter",
+        "properties",
+        "$in"
+      ],
+      "children": []
+    },
+    "POST /agent-instances/search > request > filter.elementInstanceKeys[].$notIn": {
+      "version": "8.10",
+      "location": "request",
+      "endpoint": "POST /agent-instances/search",
+      "property": "$notIn",
+      "qualifiedName": "filter.elementInstanceKeys[].$notIn",
+      "depth": 2,
+      "path": [
+        "keys.yaml",
+        "components",
+        "schemas",
+        "AdvancedElementInstanceKeyFilter",
+        "properties",
+        "$notIn"
+      ],
+      "children": []
+    },
     "POST /agent-instances/search > request > page": {
       "version": "8.10",
       "location": "request",
@@ -99013,7 +98463,8 @@
         "POST /agent-instances/search > response > items[].tenantId",
         "POST /agent-instances/search > response > items[].creationDate",
         "POST /agent-instances/search > response > items[].lastUpdatedDate",
-        "POST /agent-instances/search > response > items[].completionDate"
+        "POST /agent-instances/search > response > items[].completionDate",
+        "POST /agent-instances/search > response > items[].elementInstanceKeys"
       ]
     },
     "POST /agent-instances/search > response > items[].agentInstanceKey": {
@@ -99078,9 +98529,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "definition",
+        "AgentInstanceDefinition",
         "properties",
         "model"
       ],
@@ -99096,9 +98545,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "definition",
+        "AgentInstanceDefinition",
         "properties",
         "provider"
       ],
@@ -99114,9 +98561,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "definition",
+        "AgentInstanceDefinition",
         "properties",
         "systemPrompt"
       ],
@@ -99153,9 +98598,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "metrics",
+        "AgentInstanceMetrics",
         "properties",
         "inputTokens"
       ],
@@ -99171,9 +98614,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "metrics",
+        "AgentInstanceMetrics",
         "properties",
         "outputTokens"
       ],
@@ -99189,9 +98630,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "metrics",
+        "AgentInstanceMetrics",
         "properties",
         "modelCalls"
       ],
@@ -99207,9 +98646,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "metrics",
+        "AgentInstanceMetrics",
         "properties",
         "toolCalls"
       ],
@@ -99245,9 +98682,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "limits",
+        "AgentInstanceLimits",
         "properties",
         "maxModelCalls"
       ],
@@ -99263,9 +98698,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "limits",
+        "AgentInstanceLimits",
         "properties",
         "maxToolCalls"
       ],
@@ -99281,9 +98714,7 @@
       "path": [
         "components",
         "schemas",
-        "AgentInstanceResult",
-        "properties",
-        "limits",
+        "AgentInstanceLimits",
         "properties",
         "maxTokens"
       ],
@@ -99466,6 +98897,22 @@
         "AgentInstanceResult",
         "properties",
         "completionDate"
+      ],
+      "children": []
+    },
+    "POST /agent-instances/search > response > items[].elementInstanceKeys": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "POST /agent-instances/search",
+      "property": "elementInstanceKeys",
+      "qualifiedName": "items[].elementInstanceKeys",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "AgentInstanceResult",
+        "properties",
+        "elementInstanceKeys"
       ],
       "children": []
     },
@@ -99765,38 +99212,6 @@
       ],
       "children": []
     },
-    "POST /element-instances/search > response > items[].agentInstanceKey": {
-      "version": "8.10",
-      "location": "response",
-      "endpoint": "POST /element-instances/search",
-      "property": "agentInstanceKey",
-      "qualifiedName": "items[].agentInstanceKey",
-      "depth": 1,
-      "path": [
-        "components",
-        "schemas",
-        "ElementInstanceResult",
-        "properties",
-        "agentInstanceKey"
-      ],
-      "children": []
-    },
-    "GET /element-instances/{elementInstanceKey} > response > agentInstanceKey": {
-      "version": "8.10",
-      "location": "response",
-      "endpoint": "GET /element-instances/{elementInstanceKey}",
-      "property": "agentInstanceKey",
-      "qualifiedName": "agentInstanceKey",
-      "depth": 0,
-      "path": [
-        "components",
-        "schemas",
-        "ElementInstanceResult",
-        "properties",
-        "agentInstanceKey"
-      ],
-      "children": []
-    },
     "GET /forms/{formKey} > response > tenantId": {
       "version": "8.10",
       "location": "response",
@@ -99892,9 +99307,7 @@
       "path": [
         "components",
         "schemas",
-        "MessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "messageSubscriptionType"
       ],
@@ -99996,9 +99409,7 @@
       "path": [
         "components",
         "schemas",
-        "MessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "processDefinitionName"
       ],
@@ -100125,9 +99536,7 @@
       "path": [
         "components",
         "schemas",
-        "MessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "processDefinitionVersion"
       ],
@@ -100288,9 +99697,7 @@
       "path": [
         "components",
         "schemas",
-        "MessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "toolName"
       ],
@@ -100417,9 +99824,7 @@
       "path": [
         "components",
         "schemas",
-        "MessageSubscriptionSearchQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "inboundConnectorType"
       ],
@@ -100640,11 +100045,10 @@
       "qualifiedName": "filter.messageSubscriptionType",
       "depth": 1,
       "path": [
+        "messages.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "messageSubscriptionType"
       ],
@@ -100749,11 +100153,10 @@
       "qualifiedName": "filter.processDefinitionName",
       "depth": 1,
       "path": [
+        "messages.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "processDefinitionName"
       ],
@@ -100878,11 +100281,10 @@
       "qualifiedName": "filter.processDefinitionVersion",
       "depth": 1,
       "path": [
+        "messages.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "processDefinitionVersion"
       ],
@@ -101041,11 +100443,10 @@
       "qualifiedName": "filter.toolName",
       "depth": 1,
       "path": [
+        "messages.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "toolName"
       ],
@@ -101170,11 +100571,10 @@
       "qualifiedName": "filter.inboundConnectorType",
       "depth": 1,
       "path": [
+        "messages.yaml",
         "components",
         "schemas",
-        "ProcessDefinitionMessageSubscriptionStatisticsQuery",
-        "properties",
-        "filter",
+        "MessageSubscriptionFilter",
         "properties",
         "inboundConnectorType"
       ],
@@ -101376,9 +100776,7 @@
       "path": [
         "components",
         "schemas",
-        "ResourceSearchQuery",
-        "properties",
-        "filter",
+        "ResourceFilter",
         "properties",
         "resourceKey"
       ],
@@ -101480,9 +100878,7 @@
       "path": [
         "components",
         "schemas",
-        "ResourceSearchQuery",
-        "properties",
-        "filter",
+        "ResourceFilter",
         "properties",
         "resourceName"
       ],
@@ -101609,9 +101005,7 @@
       "path": [
         "components",
         "schemas",
-        "ResourceSearchQuery",
-        "properties",
-        "filter",
+        "ResourceFilter",
         "properties",
         "resourceId"
       ],
@@ -101738,9 +101132,7 @@
       "path": [
         "components",
         "schemas",
-        "ResourceSearchQuery",
-        "properties",
-        "filter",
+        "ResourceFilter",
         "properties",
         "version"
       ],
@@ -101901,9 +101293,7 @@
       "path": [
         "components",
         "schemas",
-        "ResourceSearchQuery",
-        "properties",
-        "filter",
+        "ResourceFilter",
         "properties",
         "versionTag"
       ],
@@ -102030,9 +101420,7 @@
       "path": [
         "components",
         "schemas",
-        "ResourceSearchQuery",
-        "properties",
-        "filter",
+        "ResourceFilter",
         "properties",
         "deploymentKey"
       ],
@@ -102134,9 +101522,7 @@
       "path": [
         "components",
         "schemas",
-        "ResourceSearchQuery",
-        "properties",
-        "filter",
+        "ResourceFilter",
         "properties",
         "tenantId"
       ],
@@ -102438,6 +101824,278 @@
         "SearchQueryPageResponse",
         "properties",
         "endCursor"
+      ],
+      "children": []
+    },
+    "GET /system/configuration > response > components": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /system/configuration",
+      "property": "components",
+      "qualifiedName": "components",
+      "depth": 0,
+      "path": [
+        "components",
+        "schemas",
+        "SystemConfigurationResponse",
+        "properties",
+        "components"
+      ],
+      "children": [
+        "GET /system/configuration > response > components.active"
+      ]
+    },
+    "GET /system/configuration > response > components.active": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /system/configuration",
+      "property": "active",
+      "qualifiedName": "components.active",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "ComponentsConfigurationResponse",
+        "properties",
+        "active"
+      ],
+      "children": []
+    },
+    "GET /system/configuration > response > deployment": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /system/configuration",
+      "property": "deployment",
+      "qualifiedName": "deployment",
+      "depth": 0,
+      "path": [
+        "components",
+        "schemas",
+        "SystemConfigurationResponse",
+        "properties",
+        "deployment"
+      ],
+      "children": [
+        "GET /system/configuration > response > deployment.isEnterprise",
+        "GET /system/configuration > response > deployment.isMultiTenancyEnabled",
+        "GET /system/configuration > response > deployment.contextPath",
+        "GET /system/configuration > response > deployment.maxRequestSize"
+      ]
+    },
+    "GET /system/configuration > response > deployment.isEnterprise": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /system/configuration",
+      "property": "isEnterprise",
+      "qualifiedName": "deployment.isEnterprise",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "DeploymentConfigurationResponse",
+        "properties",
+        "isEnterprise"
+      ],
+      "children": []
+    },
+    "GET /system/configuration > response > deployment.isMultiTenancyEnabled": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /system/configuration",
+      "property": "isMultiTenancyEnabled",
+      "qualifiedName": "deployment.isMultiTenancyEnabled",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "DeploymentConfigurationResponse",
+        "properties",
+        "isMultiTenancyEnabled"
+      ],
+      "children": []
+    },
+    "GET /system/configuration > response > deployment.contextPath": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /system/configuration",
+      "property": "contextPath",
+      "qualifiedName": "deployment.contextPath",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "DeploymentConfigurationResponse",
+        "properties",
+        "contextPath"
+      ],
+      "children": []
+    },
+    "GET /system/configuration > response > deployment.maxRequestSize": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /system/configuration",
+      "property": "maxRequestSize",
+      "qualifiedName": "deployment.maxRequestSize",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "DeploymentConfigurationResponse",
+        "properties",
+        "maxRequestSize"
+      ],
+      "children": []
+    },
+    "GET /system/configuration > response > authentication": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /system/configuration",
+      "property": "authentication",
+      "qualifiedName": "authentication",
+      "depth": 0,
+      "path": [
+        "components",
+        "schemas",
+        "SystemConfigurationResponse",
+        "properties",
+        "authentication"
+      ],
+      "children": [
+        "GET /system/configuration > response > authentication.canLogout",
+        "GET /system/configuration > response > authentication.isLoginDelegated"
+      ]
+    },
+    "GET /system/configuration > response > authentication.canLogout": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /system/configuration",
+      "property": "canLogout",
+      "qualifiedName": "authentication.canLogout",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "AuthenticationConfigurationResponse",
+        "properties",
+        "canLogout"
+      ],
+      "children": []
+    },
+    "GET /system/configuration > response > authentication.isLoginDelegated": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /system/configuration",
+      "property": "isLoginDelegated",
+      "qualifiedName": "authentication.isLoginDelegated",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "AuthenticationConfigurationResponse",
+        "properties",
+        "isLoginDelegated"
+      ],
+      "children": []
+    },
+    "GET /system/configuration > response > cloud": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /system/configuration",
+      "property": "cloud",
+      "qualifiedName": "cloud",
+      "depth": 0,
+      "path": [
+        "components",
+        "schemas",
+        "SystemConfigurationResponse",
+        "properties",
+        "cloud"
+      ],
+      "children": [
+        "GET /system/configuration > response > cloud.organizationId",
+        "GET /system/configuration > response > cloud.clusterId",
+        "GET /system/configuration > response > cloud.stage",
+        "GET /system/configuration > response > cloud.mixpanelToken",
+        "GET /system/configuration > response > cloud.mixpanelAPIHost"
+      ]
+    },
+    "GET /system/configuration > response > cloud.organizationId": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /system/configuration",
+      "property": "organizationId",
+      "qualifiedName": "cloud.organizationId",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "CloudConfigurationResponse",
+        "properties",
+        "organizationId"
+      ],
+      "children": []
+    },
+    "GET /system/configuration > response > cloud.clusterId": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /system/configuration",
+      "property": "clusterId",
+      "qualifiedName": "cloud.clusterId",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "CloudConfigurationResponse",
+        "properties",
+        "clusterId"
+      ],
+      "children": []
+    },
+    "GET /system/configuration > response > cloud.stage": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /system/configuration",
+      "property": "stage",
+      "qualifiedName": "cloud.stage",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "CloudConfigurationResponse",
+        "properties",
+        "stage"
+      ],
+      "children": []
+    },
+    "GET /system/configuration > response > cloud.mixpanelToken": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /system/configuration",
+      "property": "mixpanelToken",
+      "qualifiedName": "cloud.mixpanelToken",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "CloudConfigurationResponse",
+        "properties",
+        "mixpanelToken"
+      ],
+      "children": []
+    },
+    "GET /system/configuration > response > cloud.mixpanelAPIHost": {
+      "version": "8.10",
+      "location": "response",
+      "endpoint": "GET /system/configuration",
+      "property": "mixpanelAPIHost",
+      "qualifiedName": "cloud.mixpanelAPIHost",
+      "depth": 1,
+      "path": [
+        "components",
+        "schemas",
+        "CloudConfigurationResponse",
+        "properties",
+        "mixpanelAPIHost"
       ],
       "children": []
     },
@@ -102921,6 +102579,22 @@
       "removedIn": "8.8",
       "endpoint": "POST /flownode-instances/search"
     },
+    "POST /flownode-instances/search > request > filter.flowNodeInstanceKey": {
+      "removedIn": "8.8",
+      "endpoint": "POST /flownode-instances/search"
+    },
+    "POST /flownode-instances/search > request > filter.processInstanceKey": {
+      "removedIn": "8.8",
+      "endpoint": "POST /flownode-instances/search"
+    },
+    "POST /flownode-instances/search > request > filter.processDefinitionKey": {
+      "removedIn": "8.8",
+      "endpoint": "POST /flownode-instances/search"
+    },
+    "POST /flownode-instances/search > request > filter.incidentKey": {
+      "removedIn": "8.8",
+      "endpoint": "POST /flownode-instances/search"
+    },
     "POST /flownode-instances/search > request > filter.state": {
       "removedIn": "8.8",
       "endpoint": "POST /flownode-instances/search"
@@ -103093,6 +102767,10 @@
       "removedIn": "8.8",
       "endpoint": "POST /decision-requirements/search"
     },
+    "POST /decision-instances/search > request > filter.key": {
+      "removedIn": "8.8",
+      "endpoint": "POST /decision-instances/search"
+    },
     "POST /decision-instances/search > request > page.searchAfter": {
       "removedIn": "8.8",
       "endpoint": "POST /decision-instances/search"
@@ -103112,6 +102790,14 @@
     "POST /decision-instances/search > response > page.lastSortValues": {
       "removedIn": "8.8",
       "endpoint": "POST /decision-instances/search"
+    },
+    "POST /incidents/search > request > filter.key": {
+      "removedIn": "8.8",
+      "endpoint": "POST /incidents/search"
+    },
+    "POST /incidents/search > request > filter.flowNodeInstanceKey": {
+      "removedIn": "8.8",
+      "endpoint": "POST /incidents/search"
     },
     "POST /incidents/search > request > filter.flowNodeId": {
       "removedIn": "8.8",
