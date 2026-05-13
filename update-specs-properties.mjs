@@ -10,6 +10,11 @@
  *  - Only the highest-level ancestor introduced in a given version is
  *    annotated. Child properties added in the SAME version as their nearest
  *    property ancestor are skipped; children added LATER ARE annotated.
+ *    The parent-child relation is taken from the version-map's `children`
+ *    arrays (built from the qualifiedName tree), so it traverses `$ref`
+ *    boundaries: e.g. `UserTaskSearchQuery.filter.state` is recognised as
+ *    the parent of `AdvancedUserTaskStateFilter.$eq` even though the two
+ *    live in different schemas.
  *  - For shared schemas referenced from multiple endpoints, the property's
  *    introduction version is the EARLIEST across all consumers, and the
  *    property is annotated unless every consumer endpoint's own
@@ -80,23 +85,6 @@ function resolveFileAndPath(propPath, endpointPath) {
 
 function locationKey(file, inFilePath) {
   return `${file}\x00${inFilePath.join("\x00")}`;
-}
-
-/**
- * Nearest enclosing property location of `inFilePath`, expressed as the path
- * ending at `["properties", <name>]`. Returns null when there is none.
- */
-function ancestorLocation(file, inFilePath) {
-  const n = inFilePath.length;
-  if (n < 4) return null;
-  if (inFilePath[n - 2] !== "properties") return null;
-  for (let i = n - 4; i >= 0; i--) {
-    if (inFilePath[i] === "properties" && typeof inFilePath[i + 1] === "string") {
-      const slice = inFilePath.slice(0, i + 2);
-      return { file, inFilePath: slice, key: locationKey(file, slice) };
-    }
-  }
-  return null;
 }
 
 /**
@@ -248,6 +236,29 @@ console.log(`Annotating properties in ${specDir} ...\n`);
 
 const versionMap = JSON.parse(readFileSync(versionMapPath, "utf-8"));
 
+// Build childPropKey → parentPropKey from the version-map's `children`
+// arrays. These arrays are derived from each property's `qualifiedName`
+// tree, so they capture parent/child relationships even when the parent and
+// child live in different schemas connected by `$ref`.
+const parentOf = new Map();
+for (const [propKey, entry] of Object.entries(versionMap.properties)) {
+  for (const childKey of entry.children || []) {
+    parentOf.set(childKey, propKey);
+  }
+}
+
+/**
+ * Resolve the upstream location of a property entry, or null when the entry
+ * is missing or unresolvable. Used to find a property's parent location
+ * across `$ref` boundaries.
+ */
+function locationKeyOfPropEntry(entry) {
+  if (!entry) return null;
+  const epInfo = versionMap.operations?.[entry.endpoint];
+  const r = resolveFileAndPath(entry.path, epInfo?.path);
+  return r ? locationKey(r.file, r.inFilePath) : null;
+}
+
 // ── Phase 1: aggregate propKeys by schema location ───────────────────────────
 
 const locations = new Map();
@@ -275,11 +286,13 @@ for (const [propKey, entry] of Object.entries(versionMap.properties)) {
       inFilePath: resolved.inFilePath,
       intro: entry.version,
       endpointVersions: new Set(),
+      propKeys: [],
     };
     locations.set(key, loc);
   } else if (compareVersions(entry.version, loc.intro) < 0) {
     loc.intro = entry.version;
   }
+  loc.propKeys.push(propKey);
   const endpointVersion = endpointInfo?.version;
   if (endpointVersion) {
     loc.endpointVersions.add(endpointVersion);
@@ -305,10 +318,27 @@ for (const [key, loc] of locations) {
     skippedSameAsEndpoint++;
     continue;
   }
-  const ancestor = ancestorLocation(loc.file, loc.inFilePath);
-  if (ancestor) {
-    const ancestorLoc = locations.get(ancestor.key);
-    if (ancestorLoc && ancestorLoc.intro === loc.intro) {
+  // Resolve every aggregated propKey's logical parent location. The relation
+  // comes from the version-map's `children` arrays (qualifiedName tree), so
+  // it crosses `$ref` boundaries. Suppress only when every aggregated
+  // propKey has a parent AND every distinct parent location shares the same
+  // intro version as this location — only then can we be sure the parent's
+  // annotation already covers this property at every consumer endpoint.
+  const parentLocKeys = new Set();
+  let everyPropHasParent = loc.propKeys.length > 0;
+  for (const pk of loc.propKeys) {
+    const parentKey = parentOf.get(pk);
+    if (!parentKey) { everyPropHasParent = false; break; }
+    const parentLocKey = locationKeyOfPropEntry(versionMap.properties[parentKey]);
+    if (!parentLocKey) { everyPropHasParent = false; break; }
+    parentLocKeys.add(parentLocKey);
+  }
+  if (everyPropHasParent && parentLocKeys.size > 0) {
+    const allParentsMatch = [...parentLocKeys].every((pk) => {
+      const pl = locations.get(pk);
+      return pl && pl.intro === loc.intro;
+    });
+    if (allParentsMatch) {
       skippedSameAsAncestor++;
       continue;
     }

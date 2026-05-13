@@ -83,6 +83,15 @@ annotated. A child added in the SAME version as its nearest property
 ancestor is skipped (the ancestor already covers it). A child added in a
 LATER version gets its own annotation.
 
+The parent/child relation comes from `version-map.json`'s `children` arrays
+(built from each property's `qualifiedName` tree), so it **traverses `$ref`
+boundaries**. For example, `UserTaskSearchQuery.filter.state` (in
+`user-tasks.yaml`) is recognised as the parent of
+`AdvancedUserTaskStateFilter.$eq` (in a separately referenced schema), even
+though the two properties live in different YAML files. Suppression only
+fires when **every** aggregated consumer's parent location shares the same
+intro version as the child — otherwise the child gets its own annotation.
+
 ```yaml
 # endpoint introduced in 8.6
 properties:
@@ -96,6 +105,37 @@ properties:
         type: boolean
         x-added-in-version: '8.8'
 ```
+
+#### When parents disagree across consumers
+
+Because Rule 3 aggregates each location independently, the same upstream
+child can be reached by parents that resolve to **different** intro
+versions. Suppression then only fires if **every** parent agrees with the
+child.
+
+Real example — `OffsetPagination.from` (in `search-models.yaml`) is
+referenced by ~47 endpoints across versions 8.6–8.10, so its aggregated
+intro is **8.6**. Two of its parents are:
+
+| Parent location                                              | Consumers | Aggregated intro |
+|--------------------------------------------------------------|-----------|------------------|
+| `ProcessInstanceSearchQueryRequest.page` (8.6 endpoint)      | many      | **8.6**          |
+| `UserTaskEffectiveVariableSearchQueryRequest.page` (8.8 only)| 1         | **8.8**          |
+
+The 8.6 parent matches the child, but the 8.8 parent doesn't. Rule 2
+therefore does **not** suppress, and `from` keeps its own annotation:
+
+```yaml
+# search-models.yaml
+OffsetPagination:
+  properties:
+    from:
+      type: integer
+      x-added-in-version: '8.6'    # kept — one parent's intro (8.8) differs
+```
+
+If both parents had aggregated to 8.6, Rule 2 would have suppressed the
+child annotation.
 
 ### Rule 3 — Shared schemas: earliest version across all consumers
 
