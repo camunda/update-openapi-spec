@@ -12,8 +12,9 @@
  *    property ancestor are skipped; children added LATER ARE annotated.
  *  - For shared schemas referenced from multiple endpoints, the property's
  *    introduction version is the EARLIEST across all consumers, and the
- *    property is annotated when at least one consumer brought it in before
- *    the consumer endpoint itself existed.
+ *    property is annotated unless every consumer endpoint's own
+ *    introduction version equals that earliest version (in which case
+ *    the endpoint-level annotation already covers it).
  *
  * Env variables:
  *   OCA_SPEC_PATH    – directory containing the upstream YAML spec files
@@ -273,15 +274,18 @@ for (const [propKey, entry] of Object.entries(versionMap.properties)) {
       file: resolved.file,
       inFilePath: resolved.inFilePath,
       intro: entry.version,
-      hasAnnotatableConsumer: false,
+      endpointVersions: new Set(),
     };
     locations.set(key, loc);
   } else if (compareVersions(entry.version, loc.intro) < 0) {
     loc.intro = entry.version;
   }
   const endpointVersion = endpointInfo?.version;
-  if (!endpointVersion || entry.version !== endpointVersion) {
-    loc.hasAnnotatableConsumer = true;
+  if (endpointVersion) {
+    loc.endpointVersions.add(endpointVersion);
+  } else {
+    // Unknown endpoint version → cannot prove redundancy; force annotate.
+    loc.endpointVersions.add(null);
   }
 }
 
@@ -292,7 +296,12 @@ let skippedSameAsEndpoint = 0;
 let skippedSameAsAncestor = 0;
 
 for (const [key, loc] of locations) {
-  if (!loc.hasAnnotatableConsumer) {
+  // Skip if EVERY consumer endpoint shares the chosen earliest intro
+  // version — those endpoints' own `x-added-in-version` already covers it.
+  const allEndpointsMatchIntro =
+    loc.endpointVersions.size > 0
+    && [...loc.endpointVersions].every((v) => v === loc.intro);
+  if (allEndpointsMatchIntro) {
     skippedSameAsEndpoint++;
     continue;
   }
