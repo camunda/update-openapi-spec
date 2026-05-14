@@ -68,8 +68,10 @@ for (const [operationKey, info] of Object.entries(versionMap.operations)) {
 // ── Update YAML files via text insertion (preserves all formatting) ───────────
 
 let updatedFiles = 0;
-let updatedOps = 0;
+let addedOps = 0;
+let alreadyAnnotatedOps = 0;
 let skippedOps = 0;
+const touchedFiles = new Set();
 
 for (const [sourceFile, ops] of fileOps) {
   const filePath = join(specDir, sourceFile);
@@ -113,7 +115,8 @@ for (const [sourceFile, ops] of fileOps) {
 
     // Skip if already annotated
     if (opNode.get("x-added-in-version") != null) {
-      updatedOps++;
+      alreadyAnnotatedOps++;
+      touchedFiles.add(sourceFile);
       continue;
     }
 
@@ -148,7 +151,8 @@ for (const [sourceFile, ops] of fileOps) {
 
     const line = `${indent}x-added-in-version: "${version}"\n`;
     insertions.push({ offset: insertAt, line });
-    updatedOps++;
+    addedOps++;
+    touchedFiles.add(sourceFile);
   }
 
   if (insertions.length === 0) continue;
@@ -167,7 +171,11 @@ for (const [sourceFile, ops] of fileOps) {
 }
 
 console.log(
-  `\nDone – updated ${updatedOps} operations across ${updatedFiles} files` +
-    (skippedDeleted ? `, ${skippedDeleted} deleted ops skipped` : "") +
-    (skippedOps ? `, ${skippedOps} not found in YAML` : "")
+  addedOps === 0
+    ? `\nNothing to update — ${alreadyAnnotatedOps} operations across ${touchedFiles.size} files already up-to-date` +
+        (skippedDeleted ? `, ${skippedDeleted} deleted ops skipped` : "") +
+        (skippedOps ? `, ${skippedOps} not found in YAML` : "")
+    : `\nDone — added ${addedOps} operations across ${updatedFiles} files (${alreadyAnnotatedOps} already up-to-date)` +
+        (skippedDeleted ? `, ${skippedDeleted} deleted ops skipped` : "") +
+        (skippedOps ? `, ${skippedOps} not found in YAML` : "")
 );

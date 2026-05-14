@@ -3,11 +3,15 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "update:operations": "node update-specs-operations.mjs",
-    "update:properties": "node update-specs-properties.mjs",
-    "verify:specs": "node verify-specs.mjs"
+    "build:endpoint-map": "node build-endpoint-map.mjs",
+    "build:version-map": "node get-version-map.mjs",
+    "build:artefacts": "npm run build:endpoint-map && npm run build:version-map",
+    "update:operations": "npm run build:artefacts && node update-specs-operations.mjs",
+    "update:properties": "npm run build:artefacts && node update-specs-properties.mjs",
+    "verify:specs": "npm run build:artefacts && node verify-specs.mjs"
   },
   "dependencies": {
+    "camunda-schema-bundler": "^2.4.1",
     "dotenv": "^16.4.0",
     "yaml": "^2.8.3"
   }

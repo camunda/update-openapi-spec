@@ -148,6 +148,7 @@ for (const [propKey, entry] of Object.entries(versionMap.properties)) {
       inFilePath: resolved.inFilePath,
       intro: entry.version,
       endpointVersions: new Set(),
+      consumerEndpoints: new Set(),
       propKeys: [],
     };
     locations.set(key, loc);
@@ -155,6 +156,7 @@ for (const [propKey, entry] of Object.entries(versionMap.properties)) {
     loc.intro = entry.version;
   }
   loc.propKeys.push(propKey);
+  if (entry.endpoint) loc.consumerEndpoints.add(entry.endpoint);
   const endpointVersion = endpointInfo?.version;
   if (endpointVersion) {
     loc.endpointVersions.add(endpointVersion);
@@ -167,8 +169,9 @@ for (const [propKey, entry] of Object.entries(versionMap.properties)) {
 // ── Phase 2: apply parent-suppression rule ───────────────────────────────────
 
 const toAnnotate = new Map();
-let skippedSameAsEndpoint = 0;
-let skippedSameAsAncestor = 0;
+let skippedRule1 = 0;
+let skippedRule3 = 0;
+let skippedRule2 = 0;
 
 for (const [key, loc] of locations) {
   // Skip if EVERY consumer endpoint shares the chosen earliest intro
@@ -177,7 +180,8 @@ for (const [key, loc] of locations) {
     loc.endpointVersions.size > 0
     && [...loc.endpointVersions].every((v) => v === loc.intro);
   if (allEndpointsMatchIntro) {
-    skippedSameAsEndpoint++;
+    if (loc.consumerEndpoints.size <= 1) skippedRule1++;
+    else skippedRule3++;
     continue;
   }
   // Resolve every aggregated propKey's logical parent location. The relation
@@ -201,7 +205,7 @@ for (const [key, loc] of locations) {
       return pl && pl.intro === loc.intro;
     });
     if (allParentsMatch) {
-      skippedSameAsAncestor++;
+      skippedRule2++;
       continue;
     }
   }
@@ -212,8 +216,9 @@ console.log(`Property keys considered: ${propKeysSeen}`);
 console.log(`  Skipped (deleted): ${skippedDeleted}`);
 console.log(`  Skipped (unresolvable file): ${skippedUnresolvable}`);
 console.log(`Schema locations: ${locations.size}`);
-console.log(`  Skipped (every consumer matches its endpoint version): ${skippedSameAsEndpoint}`);
-console.log(`  Skipped (nearest ancestor has same intro version): ${skippedSameAsAncestor}`);
+console.log(`  Expected suppressed (Rule 1 — single consumer matches endpoint): ${skippedRule1}`);
+console.log(`  Expected suppressed (Rule 3 — every shared consumer matches endpoint): ${skippedRule3}`);
+console.log(`  Expected suppressed (Rule 2 — every parent location shares the intro): ${skippedRule2}`);
 console.log(`  Annotations planned: ${toAnnotate.size}\n`);
 
 // ── Phase 3: write parent-level x-added-in-version lists ────────────────────
@@ -355,7 +360,11 @@ for (const [file, doc] of upstreamDocs) {
 }
 
 let filesWritten = 0;
+let filesAlreadyUpToDate = 0;
 let parentsWritten = 0;
+let parentsAlreadyUpToDate = 0;
+let annotationsWritten = 0;
+let annotationsAlreadyUpToDate = 0;
 let parentsTargetMissing = 0;
 
 for (const [file, groups] of groupsByFile) {
@@ -370,6 +379,8 @@ for (const [file, groups] of groupsByFile) {
   // use text === "". Edits are applied in reverse `from` order so earlier
   // offsets stay valid; ranges produced below do not overlap.
   const edits = [];
+  let parentsThisFile = 0;
+  let annotationsThisFile = 0;
 
   for (const g of groups) {
     // Re-fetch from the canonical map so we always read the most up-to-date
@@ -484,7 +495,10 @@ for (const [file, groups] of groupsByFile) {
       edits.push({ from: insertAt, to: insertAt, text: block });
     }
 
-    if (entries.length > 0) parentsWritten++;
+    if (entries.length > 0) {
+      parentsThisFile++;
+      annotationsThisFile += entries.length;
+    }
   }
 
   if (edits.length === 0) continue;
@@ -497,19 +511,34 @@ for (const [file, groups] of groupsByFile) {
   }
 
   // Skip the write when applying edits is a no-op (idempotent re-runs).
-  if (result === content) continue;
+  if (result === content) {
+    parentsAlreadyUpToDate += parentsThisFile;
+    annotationsAlreadyUpToDate += annotationsThisFile;
+    if (parentsThisFile > 0) filesAlreadyUpToDate++;
+    continue;
+  }
 
   writeFileSync(join(specDir, file), result, "utf-8");
   filesWritten++;
+  parentsWritten += parentsThisFile;
+  annotationsWritten += annotationsThisFile;
   console.log(`  ✓  ${file} (${groups.length} parent schemas updated)`);
 }
 
 console.log(
-  `\nDone – ${parentsWritten} parent schemas annotated across ${filesWritten} files`
-    + (skippedNonPropertyPath
-      ? `, ${skippedNonPropertyPath} non-property paths skipped`
-      : "")
-    + (parentsTargetMissing
-      ? `, ${parentsTargetMissing} parent nodes missing`
-      : "")
+  parentsWritten === 0
+    ? `\nNothing to update — ${annotationsAlreadyUpToDate} property annotations across ${parentsAlreadyUpToDate} parent schemas in ${filesAlreadyUpToDate} files already up-to-date`
+        + (skippedNonPropertyPath
+          ? `, ${skippedNonPropertyPath} non-property paths skipped`
+          : "")
+        + (parentsTargetMissing
+          ? `, ${parentsTargetMissing} parent nodes missing`
+          : "")
+    : `\nDone — annotated ${annotationsWritten} properties across ${parentsWritten} parent schemas in ${filesWritten} files (${annotationsAlreadyUpToDate} annotations across ${parentsAlreadyUpToDate} parent schemas already up-to-date)`
+        + (skippedNonPropertyPath
+          ? `, ${skippedNonPropertyPath} non-property paths skipped`
+          : "")
+        + (parentsTargetMissing
+          ? `, ${parentsTargetMissing} parent nodes missing`
+          : "")
 );
