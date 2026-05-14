@@ -34,7 +34,7 @@
 import "dotenv/config";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { parseDocument } from "yaml";
+import { parseDocument, isMap, isSeq } from "yaml";
 
 const specDir = process.env.OCA_SPEC_PATH;
 const versionMapPath = process.env.VERSION_MAP_PATH;
@@ -216,13 +216,27 @@ console.log(`  Skipped (every consumer matches its endpoint version): ${skippedS
 console.log(`  Skipped (nearest ancestor has same intro version): ${skippedSameAsAncestor}`);
 console.log(`  Annotations planned: ${toAnnotate.size}\n`);
 
-// ── Phase 3: translate to upstream and write annotations ─────────────────────
+// ── Phase 3: write parent-level x-added-in-version lists ────────────────────
+//
+// Annotations are written on the PARENT schema (the mapping that owns
+// `properties`), not as a sibling of each individual property. The format
+// is a sequence of `{ propertyName, addedInVersion }` objects, e.g.:
+//
+//   x-added-in-version:
+//     - propertyName: kind
+//       addedInVersion: "8.8"
+//     - propertyName: tags
+//       addedInVersion: "8.8"
+//
+// This avoids the OpenAPI 3.0 "siblings of $ref are ignored" pitfall and
+// keeps each property definition free of extension keys (so Spectral's
+// per-property rules apply unchanged).
 
 // Load each upstream YAML once. We parse it as a Document (for locating
-// node byte ranges) but do NOT re-serialize — instead we splice
-// `x-added-in-version` lines into the original text, preserving every
-// untouched byte and avoiding the `yaml` library's tendency to reflow
-// folded scalars and other formatting around mutated mappings.
+// node byte ranges) but do NOT re-serialize — instead we splice/replace
+// regions of the original text, preserving every untouched byte and
+// avoiding the `yaml` library's tendency to reflow folded scalars and
+// other formatting around mutated mappings.
 const upstreamFiles = readdirSync(specDir).filter((f) => f.endsWith(".yaml"));
 const upstreamDocs = new Map();
 const upstreamText = new Map();
@@ -232,114 +246,270 @@ for (const file of upstreamFiles) {
   upstreamText.set(file, text);
 }
 
-// Group planned annotations by upstream file. Paths are taken verbatim from
-// the version-map; no translation is performed.
-const byFile = new Map();
+// Group planned annotations by PARENT schema location (the path with
+// the trailing `properties/<name>` segments stripped).
+const byParent = new Map(); // parentKey -> { file, parentPath, entries: Map<propName, version> }
+let skippedNonPropertyPath = 0;
 for (const ann of toAnnotate.values()) {
-  if (!byFile.has(ann.file)) byFile.set(ann.file, []);
-  byFile.get(ann.file).push({ path: ann.inFilePath, intro: ann.intro });
+  const p = ann.inFilePath;
+  if (p.length < 2 || p[p.length - 2] !== "properties") {
+    skippedNonPropertyPath++;
+    if (process.env.VERIFY_DEBUG) {
+      console.warn(
+        `  SKIP non-property path ${ann.file}: ${p.join("/")} (intro ${ann.intro})`
+      );
+    }
+    continue;
+  }
+  const propName = p[p.length - 1];
+  const parentPath = p.slice(0, -2);
+  const key = locationKey(ann.file, parentPath);
+  let g = byParent.get(key);
+  if (!g) {
+    g = { file: ann.file, parentPath, entries: new Map() };
+    byParent.set(key, g);
+  }
+  const existing = g.entries.get(propName);
+  if (!existing || compareVersions(ann.intro, existing) < 0) {
+    g.entries.set(propName, ann.intro);
+  }
+}
+
+// Walk every YAMLMap in a doc and invoke `visitor(mapNode, keyPath)`. The
+// keyPath uses scalar keys for map children and integer indices for seq
+// children, matching the path shape produced by `resolveFileAndPath`.
+function walkMaps(node, keyPath, visitor) {
+  if (node == null) return;
+  if (isMap(node)) {
+    visitor(node, keyPath);
+    for (const pair of node.items) {
+      const k = pair.key?.value ?? pair.key;
+      walkMaps(pair.value, [...keyPath, k], visitor);
+    }
+  } else if (isSeq(node)) {
+    node.items.forEach((item, i) => walkMaps(item, [...keyPath, i], visitor));
+  }
+}
+
+// Discover any parent schemas that already carry legacy per-property
+// `x-added-in-version` entries (the previous format). We use this both to
+// migrate them into the new parent-level list and to delete the stale
+// per-property lines.
+function findLegacyParents(doc) {
+  const out = []; // [{ path, legacy: Map<propName, version> }]
+  walkMaps(doc.contents, [], (mapNode, path) => {
+    const propsPair = mapNode.items.find(
+      (p) => (p.key?.value ?? p.key) === "properties"
+    );
+    if (!propsPair || !isMap(propsPair.value)) return;
+    const legacy = new Map();
+    for (const propPair of propsPair.value.items) {
+      const v = propPair.value;
+      if (!isMap(v)) continue;
+      const annPair = v.items.find(
+        (p) => (p.key?.value ?? p.key) === "x-added-in-version"
+      );
+      if (!annPair) continue;
+      const propName = propPair.key?.value ?? propPair.key;
+      const ver = annPair.value?.value ?? annPair.value;
+      if (typeof ver === "string") legacy.set(propName, ver);
+    }
+    if (legacy.size > 0) out.push({ path, legacy });
+  });
+  return out;
+}
+
+// Quote a property name as a YAML scalar. Plain identifiers are emitted
+// unquoted; anything else (e.g. `$eq`) is double-quoted.
+function yamlPropName(name) {
+  if (typeof name !== "string") return JSON.stringify(String(name));
+  if (/^[A-Za-z_][A-Za-z0-9_-]*$/.test(name)) return name;
+  return JSON.stringify(name);
+}
+
+// Group parents by file. A parent is processed if it has new annotations
+// from the version map OR legacy per-property entries to migrate/clean up.
+const groupsByFile = new Map();
+for (const g of byParent.values()) {
+  if (!groupsByFile.has(g.file)) groupsByFile.set(g.file, []);
+  groupsByFile.get(g.file).push({ ...g, source: "new" });
+}
+for (const [file, doc] of upstreamDocs) {
+  for (const { path, legacy } of findLegacyParents(doc)) {
+    const key = locationKey(file, path);
+    let group = byParent.get(key);
+    if (!group) {
+      group = { file, parentPath: path, entries: new Map() };
+      byParent.set(key, group);
+      if (!groupsByFile.has(file)) groupsByFile.set(file, []);
+      groupsByFile.get(file).push({ ...group, source: "legacy-only" });
+    }
+    // Migrate legacy versions into the parent-level entries when the
+    // version-map didn't produce a planned annotation for that property.
+    // Planned (new) annotations always win, since the version map is the
+    // source of truth for current introduction versions.
+    for (const [name, ver] of legacy) {
+      if (!group.entries.has(name)) group.entries.set(name, ver);
+    }
+  }
 }
 
 let filesWritten = 0;
-let annotationsWritten = 0;
-let annotationsAlreadyPresent = 0;
-let annotationsTargetMissing = 0;
+let parentsWritten = 0;
+let parentsTargetMissing = 0;
 
-for (const [file, anns] of byFile) {
+for (const [file, groups] of groupsByFile) {
   const doc = upstreamDocs.get(file);
   const content = upstreamText.get(file);
   if (!doc || content == null) {
-    annotationsTargetMissing += anns.length;
+    parentsTargetMissing += groups.length;
     continue;
   }
 
-  // Compute insertions. Each insertion is { offset, line } where `offset`
-  // is the byte position at which to splice and `line` is the full text
-  // (indentation + key/value + newline) to insert.
-  const insertions = [];
-  const seenPaths = new Set();
-  for (const ann of anns) {
-    const pathStr = ann.path.join("\x00");
-    if (seenPaths.has(pathStr)) continue;
-    seenPaths.add(pathStr);
+  // Each edit is a byte-range replacement: { from, to, text }. Deletions
+  // use text === "". Edits are applied in reverse `from` order so earlier
+  // offsets stay valid; ranges produced below do not overlap.
+  const edits = [];
 
-    const target = doc.getIn(ann.path, true);
-    if (target == null) {
-      annotationsTargetMissing++;
+  for (const g of groups) {
+    // Re-fetch from the canonical map so we always read the most up-to-date
+    // entries (the byParent map may have been augmented by the legacy
+    // migration loop after the initial groupsByFile push).
+    const canonical = byParent.get(locationKey(g.file, g.parentPath));
+    const entriesMap = canonical?.entries ?? g.entries;
+
+    const parent = doc.getIn(g.parentPath, true);
+    if (!parent || !isMap(parent)) {
+      parentsTargetMissing++;
       if (process.env.VERIFY_DEBUG) {
-        console.warn(`  MISS ${file}: ${ann.path.join("/")} (intro ${ann.intro})`);
+        console.warn(
+          `  MISS ${file}: ${g.parentPath.join("/")} (parent missing)`
+        );
       }
       continue;
     }
 
-    // Skip if the annotation is already present with the same version.
-    const existingAnn = doc.getIn([...ann.path, "x-added-in-version"]);
-    if (existingAnn === ann.intro) {
-      annotationsAlreadyPresent++;
-      continue;
+    const propsPair = parent.items.find(
+      (p) => (p.key?.value ?? p.key) === "properties"
+    );
+    const propsMap = isMap(propsPair?.value) ? propsPair.value : null;
+
+    // Sort entries by their source order in `properties`, falling back to
+    // alphabetical for properties not present in `properties` (shouldn't
+    // happen for well-formed input, but is harmless).
+    const order = new Map();
+    if (propsMap) {
+      propsMap.items.forEach((p, i) =>
+        order.set(p.key?.value ?? p.key, i)
+      );
     }
-
-    // Locate the property's own mapping (or scalar). When the target is a
-    // mapping/sequence, its `range` is `[startOffset, valueEndOffset,
-    // nodeEndOffset]`. For scalar values we need the parent property entry
-    // — but in practice every annotatable property has a mapping body
-    // (description / type / $ref / allOf etc), so target.range is defined.
-    const range = target.range;
-    if (!range) {
-      annotationsTargetMissing++;
-      continue;
-    }
-    const nodeStart = range[0];
-
-    // Indentation: distance from the start of the line to the node's first
-    // character. For a property entry whose key is "$eq" the YAML library
-    // points `nodeStart` at the value column, so we instead compute the
-    // indentation of the property's key line by walking back from the
-    // parent map's child entry. For simplicity, derive indentation from
-    // the column of `nodeStart` on its line.
-    const lineStart = content.lastIndexOf("\n", nodeStart - 1) + 1;
-    const indent = " ".repeat(Math.max(0, nodeStart - lineStart));
-
-    // Splice point: end of the node's content, snapped to the end of the
-    // line containing the last non-whitespace byte. This places the new
-    // annotation as the final sibling key of the mapping, immediately
-    // after its existing keys and BEFORE any trailing blank lines.
-    const nodeEnd = range[2] ?? range[1];
-    let insertAt = nodeEnd;
-    while (
-      insertAt > nodeStart
-      && (content[insertAt - 1] === "\n" || content[insertAt - 1] === " ")
-    ) {
-      insertAt--;
-    }
-    const eolIdx = content.indexOf("\n", insertAt);
-    insertAt = eolIdx === -1 ? content.length : eolIdx + 1;
-
-    insertions.push({
-      offset: insertAt,
-      line: `${indent}x-added-in-version: "${ann.intro}"\n`,
+    const entries = [...entriesMap.entries()].sort((a, b) => {
+      const oa = order.get(a[0]) ?? Number.MAX_SAFE_INTEGER;
+      const ob = order.get(b[0]) ?? Number.MAX_SAFE_INTEGER;
+      if (oa !== ob) return oa - ob;
+      return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0;
     });
+
+    // Indentation = column of the parent's first child key.
+    let childIndent = "";
+    if (parent.items.length > 0) {
+      const ks = parent.items[0].key?.range?.[0];
+      if (ks != null) {
+        const ls = content.lastIndexOf("\n", ks - 1) + 1;
+        childIndent = " ".repeat(Math.max(0, ks - ls));
+      }
+    }
+    const itemIndent = childIndent + "  ";
+    const fieldIndent = childIndent + "    ";
+
+    // Build the new x-added-in-version block (omitted entirely when the
+    // entry list is empty — e.g. a legacy parent whose entries were all
+    // suppressed by Phase 2).
+    let block = "";
+    if (entries.length > 0) {
+      block = `${childIndent}x-added-in-version:\n`;
+      for (const [name, ver] of entries) {
+        block += `${itemIndent}- propertyName: ${yamlPropName(name)}\n`;
+        block += `${fieldIndent}addedInVersion: "${ver}"\n`;
+      }
+    }
+
+    // 1) Delete legacy per-property `x-added-in-version` lines under
+    //    this parent's `properties` children.
+    if (propsMap) {
+      for (const propPair of propsMap.items) {
+        const v = propPair.value;
+        if (!isMap(v)) continue;
+        const annPair = v.items.find(
+          (p) => (p.key?.value ?? p.key) === "x-added-in-version"
+        );
+        if (!annPair) continue;
+        const keyStart = annPair.key.range[0];
+        const lineStart = content.lastIndexOf("\n", keyStart - 1) + 1;
+        const valEnd = annPair.value?.range?.[1] ?? annPair.key.range[1];
+        const eol = content.indexOf("\n", valEnd);
+        const lineEnd = eol === -1 ? content.length : eol + 1;
+        edits.push({ from: lineStart, to: lineEnd, text: "" });
+      }
+    }
+
+    // 2) Replace existing parent-level `x-added-in-version`, or insert a
+    //    new one at the end of the parent mapping. When `block` is empty
+    //    the existing block is removed (and nothing is inserted).
+    const existingPair = parent.items.find(
+      (p) => (p.key?.value ?? p.key) === "x-added-in-version"
+    );
+    if (existingPair) {
+      const keyStart = existingPair.key.range[0];
+      const lineStart = content.lastIndexOf("\n", keyStart - 1) + 1;
+      const valNode = existingPair.value;
+      let endIdx =
+        valNode?.range?.[2] ?? valNode?.range?.[1] ?? existingPair.key.range[1];
+      if (endIdx > 0 && content[endIdx - 1] !== "\n") {
+        const nl = content.indexOf("\n", endIdx);
+        endIdx = nl === -1 ? content.length : nl + 1;
+      }
+      edits.push({ from: lineStart, to: endIdx, text: block });
+    } else if (block.length > 0) {
+      const parentEnd = parent.range[2] ?? parent.range[1];
+      let insertAt = parentEnd;
+      while (
+        insertAt > parent.range[0]
+        && (content[insertAt - 1] === "\n" || content[insertAt - 1] === " ")
+      ) {
+        insertAt--;
+      }
+      const nl = content.indexOf("\n", insertAt);
+      insertAt = nl === -1 ? content.length : nl + 1;
+      edits.push({ from: insertAt, to: insertAt, text: block });
+    }
+
+    if (entries.length > 0) parentsWritten++;
   }
 
-  if (insertions.length === 0) continue;
+  if (edits.length === 0) continue;
 
-  // Apply insertions in reverse offset order so earlier offsets stay valid.
-  insertions.sort((a, b) => b.offset - a.offset);
+  // Apply edits in reverse `from` order so earlier offsets stay valid.
+  edits.sort((a, b) => b.from - a.from);
   let result = content;
-  for (const { offset, line } of insertions) {
-    result = result.slice(0, offset) + line + result.slice(offset);
+  for (const e of edits) {
+    result = result.slice(0, e.from) + e.text + result.slice(e.to);
   }
+
+  // Skip the write when applying edits is a no-op (idempotent re-runs).
+  if (result === content) continue;
 
   writeFileSync(join(specDir, file), result, "utf-8");
   filesWritten++;
-  annotationsWritten += insertions.length;
-  console.log(`  ✓  ${file} (${insertions.length} annotations)`);
+  console.log(`  ✓  ${file} (${groups.length} parent schemas updated)`);
 }
 
 console.log(
-  `\nDone – ${annotationsWritten} annotations written across ${filesWritten} files` +
-    `, ${annotationsAlreadyPresent} already present` +
-    (annotationsTargetMissing
-      ? `, ${annotationsTargetMissing} target nodes missing`
+  `\nDone – ${parentsWritten} parent schemas annotated across ${filesWritten} files`
+    + (skippedNonPropertyPath
+      ? `, ${skippedNonPropertyPath} non-property paths skipped`
+      : "")
+    + (parentsTargetMissing
+      ? `, ${parentsTargetMissing} parent nodes missing`
       : "")
 );
