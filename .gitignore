@@ -5,3 +5,5 @@ bin/
 .tmp-clone-*
 external-spec/
 *.env
+endpoint-map.json
+version-map.json
