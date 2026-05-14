@@ -210,3 +210,49 @@ Several bundled paths can resolve to the **same** node in the upstream
 multi-file YAMLs. Annotations are grouped by upstream `(file, path)` so each
 physical location is written exactly once, using the version chosen under
 Rule 3.
+
+## Pipeline & npm scripts
+
+This repo bootstraps the two artefacts (`endpoint-map.json` and
+`version-map.json`) on demand instead of requiring you to commit them, then
+runs the annotator/verifier against them.
+
+| Script | What it does |
+|--------|-------------|
+| `build:endpoint-map` | Runs `camunda-schema-bundler` against `CAMUNDA_REF` and copies the bundler's `endpoint-map.json` to `ENDPOINT_MAP_PATH`. Skips if the file already exists. |
+| `build:version-map` | Clones [`return-of-api-added-in-analysis`](https://github.com/camunda/return-of-api-added-in-analysis) at `RETURN_OF_API_REF`, runs its `npm run all`, and copies the resulting `output/version-map.json` to `VERSION_MAP_PATH`. Skips if the file already exists. Throws (no silent failure) if the upstream produced no map. |
+| `build:artefacts` | Convenience wrapper — runs both build steps in order. |
+| `update:operations` | `build:artefacts` + writes operation-level `x-added-in-version` into the YAMLs under `OCA_SPEC_PATH`. |
+| `update:properties` | `build:artefacts` + writes property-level `x-added-in-version` (parent-list form) into the YAMLs under `OCA_SPEC_PATH`. |
+| `verify:specs` | `build:artefacts` + runs the local-developer verifier (`verify-specs.mjs`). Verbose, exits 0 on clean. |
+| `verify:specs:ci` | Runs the CI verifier (`verify-specs-ci.mjs`). **Does not** rebuild artefacts — assumes they exist (so CI can do the build once and reuse them). Always writes a Markdown report. |
+
+Re-running any artefact build is a no-op once the target file exists; delete
+the file (or unset the path) to force a rebuild.
+
+### CI verifier (`verify:specs:ci`)
+
+Same checks as `verify:specs` (operation-level + property-level annotations
+against the version-map), but tuned for GitHub Actions output:
+
+- On success: a single-line Markdown report with `**Status:** ✅`.
+- On failure: a numbered `## Rules broken` summary, then `## Operation
+  errors` / `## Property errors` sections with copy-pasteable YAML fix
+  snippets, then `## Detailed verification results` counts. Exits with code
+  1.
+
+The script always writes its report as Markdown to `REPORT_PATH` (defaults
+to `output/verify-report.md` next to the script). The same content is also
+printed to stdout. CI consumes the file directly — no `tee`, no shell
+post-processing — so headings, lists, and inner ` ```yaml ` blocks render
+natively in the GitHub Actions job summary.
+
+The accompanying workflow lives at
+`.github/workflows/verify-openapi-annotations.yml` in `camunda/camunda` and:
+
+1. Checks out `camunda/camunda` at the requested ref.
+2. Clones this repo into a temp dir, runs `npm ci`, then
+   `npm run build:artefacts`.
+3. Runs `npm run verify:specs:ci` with `REPORT_PATH` pointing into a
+   workflow-controlled `reports/` directory.
+4. Appends the report to the run summary and uploads it as an artifact.
