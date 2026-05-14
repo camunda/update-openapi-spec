@@ -254,6 +254,27 @@ for (const [key, loc] of locations) {
 }
 
 // Phase 3: check actual annotations in the upstream YAML.
+//
+// Annotations live on the PARENT schema as a sequence of
+// `{ propertyName, addedInVersion }` objects (the format produced by
+// update-specs-properties.mjs). For each location we resolve the parent
+// mapping and look up the version by property name.
+function lookupParentLevelAnnotation(doc, inFilePath) {
+  if (inFilePath.length < 2 || inFilePath[inFilePath.length - 2] !== "properties") {
+    return undefined;
+  }
+  const propName = inFilePath[inFilePath.length - 1];
+  const parent = getAt(doc, inFilePath.slice(0, -2));
+  const list = parent && typeof parent === "object" ? parent["x-added-in-version"] : undefined;
+  if (!Array.isArray(list)) return undefined;
+  for (const entry of list) {
+    if (entry && typeof entry === "object" && entry.propertyName === propName) {
+      return entry.addedInVersion;
+    }
+  }
+  return undefined;
+}
+
 let propOk = 0;
 let propMissingTarget = 0;
 const propErrors = [];
@@ -268,8 +289,7 @@ for (const loc of expected.values()) {
     propMissingTarget++;
     continue;
   }
-  const actual =
-    node && typeof node === "object" ? node["x-added-in-version"] : undefined;
+  const actual = lookupParentLevelAnnotation(doc, loc.inFilePath);
   if (loc.expectAnnotated) {
     if (actual === undefined) {
       propErrors.push({

@@ -49,6 +49,32 @@ writes `x-added-in-version` onto the corresponding property in
 location** (after collapsing all bundled paths that resolve to the same node
 in the multi-file YAMLs).
 
+Property annotations are emitted on the **parent schema** as a list of
+`{propertyName, addedInVersion}` entries (rather than as a sibling of each
+property), so that the annotation never sits next to a `$ref` — which OAS
+3.0 would silently ignore — and so Spectral's `require-property-descriptions`
+rule still passes:
+
+```yaml
+ProcessInstanceResult:
+  type: object
+  properties:
+    rootProcessInstanceKey:
+      $ref: 'keys.yaml#/components/schemas/ProcessInstanceKey'
+    businessId:
+      $ref: 'identifiers.yaml#/components/schemas/BusinessId'
+  x-added-in-version:
+    - propertyName: rootProcessInstanceKey
+      addedInVersion: '8.9'
+    - propertyName: businessId
+      addedInVersion: '8.9'
+```
+
+Operation-level annotations remain a plain string sibling of the operation
+object (e.g. `x-added-in-version: '8.6'`). The examples in the rules below
+show the per-property annotation conceptually; on disk it is written in the
+parent-list form above.
+
 ### Rule 0 — Deleted properties are skipped
 
 Properties listed in `version-map.json` under `deletedProperties` are never
