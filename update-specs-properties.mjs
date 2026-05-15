@@ -324,6 +324,23 @@ function findLegacyParents(doc) {
   return out;
 }
 
+// Discover every parent schema that ALREADY carries an
+// `x-properties-added-in-version` block (the current parent-level format).
+// We need these so that parents whose annotations are now fully suppressed
+// by the version map (rule 1/2/3) still get visited and have their stale
+// block stripped — without this discovery they would never be touched and
+// would forever fail verification with UNEXPECTED_ANNOTATION_ON_SUPPRESSED.
+function findExistingParentAnnotationPaths(doc) {
+  const out = []; // [{ path }]
+  walkMaps(doc.contents, [], (mapNode, path) => {
+    const hasBlock = mapNode.items.some(
+      (p) => (p.key?.value ?? p.key) === "x-properties-added-in-version"
+    );
+    if (hasBlock) out.push({ path });
+  });
+  return out;
+}
+
 // Quote a property name as a YAML scalar. Plain identifiers are emitted
 // unquoted; anything else (e.g. `$eq`) is double-quoted.
 function yamlPropName(name) {
@@ -357,6 +374,19 @@ for (const [file, doc] of upstreamDocs) {
       if (!group.entries.has(name)) group.entries.set(name, ver);
     }
   }
+  // Force-visit every parent that currently has an
+  // `x-properties-added-in-version` block. If the version map produced no
+  // entries for it (all suppressed), the block gets removed; if the version
+  // map produced a different/smaller set, the block gets rewritten with
+  // only the planned entries (stale entries dropped).
+  for (const { path } of findExistingParentAnnotationPaths(doc)) {
+    const key = locationKey(file, path);
+    if (byParent.has(key)) continue;
+    const group = { file, parentPath: path, entries: new Map() };
+    byParent.set(key, group);
+    if (!groupsByFile.has(file)) groupsByFile.set(file, []);
+    groupsByFile.get(file).push({ ...group, source: "stale-only" });
+  }
 }
 
 let filesWritten = 0;
@@ -379,10 +409,19 @@ for (const [file, groups] of groupsByFile) {
   // use text === "". Edits are applied in reverse `from` order so earlier
   // offsets stay valid; ranges produced below do not overlap.
   const edits = [];
-  let parentsThisFile = 0;
-  let annotationsThisFile = 0;
+  let parentsChangedThisFile = 0;
+  let annotationsChangedThisFile = 0;
+  let parentsUpToDateThisFile = 0;
+  let annotationsUpToDateThisFile = 0;
+
+  // Push an edit and report whether it actually mutates content.
+  const pushEdit = (from, to, text) => {
+    edits.push({ from, to, text });
+    return content.slice(from, to) !== text;
+  };
 
   for (const g of groups) {
+    let parentChanged = false;
     // Re-fetch from the canonical map so we always read the most up-to-date
     // entries (the byParent map may have been augmented by the legacy
     // migration loop after the initial groupsByFile push).
@@ -460,7 +499,7 @@ for (const [file, groups] of groupsByFile) {
         const valEnd = annPair.value?.range?.[1] ?? annPair.key.range[1];
         const eol = content.indexOf("\n", valEnd);
         const lineEnd = eol === -1 ? content.length : eol + 1;
-        edits.push({ from: lineStart, to: lineEnd, text: "" });
+        if (pushEdit(lineStart, lineEnd, "")) parentChanged = true;
       }
     }
 
@@ -480,7 +519,7 @@ for (const [file, groups] of groupsByFile) {
         const nl = content.indexOf("\n", endIdx);
         endIdx = nl === -1 ? content.length : nl + 1;
       }
-      edits.push({ from: lineStart, to: endIdx, text: "" });
+      if (pushEdit(lineStart, endIdx, "")) parentChanged = true;
     }
 
     // 3) Replace existing parent-level `x-properties-added-in-version`, or insert a
@@ -489,6 +528,29 @@ for (const [file, groups] of groupsByFile) {
     const existingPair = parent.items.find(
       (p) => (p.key?.value ?? p.key) === "x-properties-added-in-version"
     );
+
+    // Snapshot the existing entries so we can count only the ones actually
+    // added or version-changed (not every entry under a modified parent).
+    const existingEntries = new Map();
+    if (existingPair && isSeq(existingPair.value)) {
+      for (const item of existingPair.value.items) {
+        if (!isMap(item)) continue;
+        const namePair = item.items.find(
+          (p) => (p.key?.value ?? p.key) === "propertyName"
+        );
+        const verPair = item.items.find(
+          (p) => (p.key?.value ?? p.key) === "addedInVersion"
+        );
+        const name = namePair?.value?.value ?? namePair?.value;
+        const ver = verPair?.value?.value ?? verPair?.value;
+        if (name != null && ver != null) existingEntries.set(String(name), String(ver));
+      }
+    }
+    let entriesChanged = 0;
+    for (const [name, ver] of entries) {
+      if (existingEntries.get(name) !== ver) entriesChanged++;
+    }
+
     if (existingPair) {
       const keyStart = existingPair.key.range[0];
       const lineStart = content.lastIndexOf("\n", keyStart - 1) + 1;
@@ -499,7 +561,7 @@ for (const [file, groups] of groupsByFile) {
         const nl = content.indexOf("\n", endIdx);
         endIdx = nl === -1 ? content.length : nl + 1;
       }
-      edits.push({ from: lineStart, to: endIdx, text: block });
+      if (pushEdit(lineStart, endIdx, block)) parentChanged = true;
     } else if (block.length > 0) {
       const parentEnd = parent.range[2] ?? parent.range[1];
       let insertAt = parentEnd;
@@ -511,12 +573,18 @@ for (const [file, groups] of groupsByFile) {
       }
       const nl = content.indexOf("\n", insertAt);
       insertAt = nl === -1 ? content.length : nl + 1;
-      edits.push({ from: insertAt, to: insertAt, text: block });
+      if (pushEdit(insertAt, insertAt, block)) parentChanged = true;
     }
 
     if (entries.length > 0) {
-      parentsThisFile++;
-      annotationsThisFile += entries.length;
+      if (parentChanged) {
+        parentsChangedThisFile++;
+        annotationsChangedThisFile += entriesChanged;
+        annotationsUpToDateThisFile += entries.length - entriesChanged;
+      } else {
+        parentsUpToDateThisFile++;
+        annotationsUpToDateThisFile += entries.length;
+      }
     }
   }
 
@@ -531,17 +599,19 @@ for (const [file, groups] of groupsByFile) {
 
   // Skip the write when applying edits is a no-op (idempotent re-runs).
   if (result === content) {
-    parentsAlreadyUpToDate += parentsThisFile;
-    annotationsAlreadyUpToDate += annotationsThisFile;
-    if (parentsThisFile > 0) filesAlreadyUpToDate++;
+    parentsAlreadyUpToDate += parentsUpToDateThisFile + parentsChangedThisFile;
+    annotationsAlreadyUpToDate += annotationsUpToDateThisFile + annotationsChangedThisFile;
+    if (parentsUpToDateThisFile + parentsChangedThisFile > 0) filesAlreadyUpToDate++;
     continue;
   }
 
   writeFileSync(join(specDir, file), result, "utf-8");
   filesWritten++;
-  parentsWritten += parentsThisFile;
-  annotationsWritten += annotationsThisFile;
-  console.log(`  ✓  ${file} (${groups.length} parent schemas updated)`);
+  parentsWritten += parentsChangedThisFile;
+  annotationsWritten += annotationsChangedThisFile;
+  parentsAlreadyUpToDate += parentsUpToDateThisFile;
+  annotationsAlreadyUpToDate += annotationsUpToDateThisFile;
+  console.log(`  ✓  ${file} (${parentsChangedThisFile} parent schemas updated)`);
 }
 
 console.log(

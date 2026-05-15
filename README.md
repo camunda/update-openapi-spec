@@ -170,7 +170,14 @@ OffsetPagination:
 ```
 
 If both parents had aggregated to 8.6, Rule 2 would have suppressed the
-child annotation.
+child annotation. This is exactly why `LimitPagination.limit` and
+`CursorBackwardPagination.limit` get **no** annotation in `search-models.yaml`
+while their siblings `OffsetPagination.limit` and `CursorForwardPagination.limit`
+keep one: the former two are only ever reached through `SearchQueryRequest.page`
+(single parent, aggregated intro 8.6, matches the child → Rule 2 suppresses);
+the latter two are additionally reached from statistics-query parents
+(`JobTypeStatisticsQuery.page` etc., introduced in 8.9), so not every parent
+agrees with the child's 8.6 intro and Rule 2 cannot fire.
 
 ### Rule 3 — Shared schemas: earliest version across all consumers
 
