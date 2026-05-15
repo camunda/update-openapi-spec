@@ -16,7 +16,7 @@
  */
 
 import "dotenv/config";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
@@ -243,6 +243,45 @@ function lookupParentLevelAnnotation(doc, inFilePath) {
   return undefined;
 }
 
+// Walk every YAML in the spec dir (including schema-only files like
+// keys.yaml that aren't endpoint-map members) and collect every
+// `x-properties-added-in-version` entry. Cross-checked below against
+// `expected` so entries unjustified by the version-map can be flagged.
+const allSpecYamlFiles = readdirSync(specDir).filter((f) => f.endsWith(".yaml"));
+for (const f of allSpecYamlFiles) loadYaml(f);
+
+const yamlPropAnnotations = []; // {file, parentPath, propName, addedInVersion}
+function walkForPropertyAnnotations(node, path, file) {
+  if (node == null || typeof node !== "object") return;
+  if (Array.isArray(node)) {
+    for (let i = 0; i < node.length; i++) {
+      walkForPropertyAnnotations(node[i], [...path, String(i)], file);
+    }
+    return;
+  }
+  const list = node["x-properties-added-in-version"];
+  if (Array.isArray(list)) {
+    for (const entry of list) {
+      if (entry && typeof entry === "object" && typeof entry.propertyName === "string") {
+        yamlPropAnnotations.push({
+          file,
+          parentPath: path,
+          propName: entry.propertyName,
+          addedInVersion: entry.addedInVersion,
+        });
+      }
+    }
+  }
+  for (const key of Object.keys(node)) {
+    if (key === "x-properties-added-in-version") continue;
+    walkForPropertyAnnotations(node[key], [...path, key], file);
+  }
+}
+for (const f of allSpecYamlFiles) {
+  const doc = loadYaml(f);
+  if (doc) walkForPropertyAnnotations(doc, [], f);
+}
+
 let propOk = 0;
 let propMissingTarget = 0;
 const propErrors = [];
@@ -305,6 +344,53 @@ for (const loc of expected.values()) {
   }
 }
 
+// Cross-check every YAML annotation entry against `expected`. Anything not
+// covered there is either an orphan (named property no longer exists) or
+// unknown to the version-map (e.g. schema not reached from any endpoint).
+for (const ann of yamlPropAnnotations) {
+  const inFilePath = [...ann.parentPath, "properties", ann.propName];
+  const key = locationKey(ann.file, inFilePath);
+  if (expected.has(key)) continue;
+  const doc = loadYaml(ann.file);
+  const parent = doc ? getAt(doc, ann.parentPath) : null;
+  const propsMap =
+    parent && typeof parent === "object" && parent.properties && typeof parent.properties === "object"
+      ? parent.properties
+      : null;
+  const hasProp = !!(propsMap && Object.prototype.hasOwnProperty.call(propsMap, ann.propName));
+  propErrors.push({
+    issue: hasProp ? "UNKNOWN_PROPERTY_ANNOTATION" : "ORPHAN_PROPERTY_ANNOTATION",
+    file: ann.file,
+    path: inFilePath.join("/"),
+    parentPath: ann.parentPath.join("/"),
+    propName: ann.propName,
+    actual: ann.addedInVersion != null ? String(ann.addedInVersion) : null,
+  });
+}
+
+// Operation-level x-added-in-version on operations that are flagged as
+// removed in the version-map.
+for (const f of allSpecYamlFiles) {
+  const doc = loadYaml(f);
+  if (!doc || !doc.paths) continue;
+  for (const [apiPath, methods] of Object.entries(doc.paths)) {
+    if (!methods || typeof methods !== "object") continue;
+    for (const method of ["get", "post", "put", "patch", "delete"]) {
+      const op = methods[method];
+      if (!op || typeof op !== "object") continue;
+      const opKey = method.toUpperCase() + " " + apiPath;
+      if (deletedOps.has(opKey) && op["x-added-in-version"] !== undefined) {
+        opErrors.push({
+          op: opKey,
+          issue: "UNEXPECTED_ANNOTATION_ON_DELETED_OPERATION",
+          file: f,
+          actual: String(op["x-added-in-version"]),
+        });
+      }
+    }
+  }
+}
+
 // ── Output ──────────────────────────────────────────────────────────────────
 
 const hasOpErrors = opErrors.length > 0 || extraOps.length > 0;
@@ -338,6 +424,8 @@ function fixHintForOperation(e) {
       return `**To fix this**: add path \`${e.path}\` to \`${e.file}\` or update \`endpoint-map.json\`.`;
     case "METHOD_NOT_IN_YAML":
       return `**To fix this**: add method \`${e.method.toUpperCase()}\` for path \`${e.path}\` in \`${e.file}\` or update \`endpoint-map.json\`.`;
+    case "UNEXPECTED_ANNOTATION_ON_DELETED_OPERATION":
+      return `**To fix this**: remove the \`x-added-in-version: ${e.actual}\` annotation from operation \`${e.op}\` in \`${e.file}\` — the version-map flags this operation as deleted.`;
     default:
       return `**To fix this**: investigate \`${e.issue}\` for \`${e.op}\`.`;
   }
@@ -385,6 +473,10 @@ function fixHintForProperty(e) {
     }
     case "UNEXPECTED_ANNOTATION_ON_SUPPRESSED":
       return `**To fix this**: remove the \`${e.propName ?? e.path}\` entry (\`addedInVersion: ${e.actual}\`) from the \`x-properties-added-in-version\` list on \`${e.parentPath ?? e.path}\` in \`${e.file}\` (suppressed by ${e.suppressedBy}; aggregated intro is \`${e.intro}\`).`;
+    case "ORPHAN_PROPERTY_ANNOTATION":
+      return `**To fix this**: remove the \`${e.propName}\` entry from the \`x-properties-added-in-version\` list on \`${e.parentPath}\` in \`${e.file}\` — no such property exists on this schema.`;
+    case "UNKNOWN_PROPERTY_ANNOTATION":
+      return `**To fix this**: either remove the \`${e.propName}\` entry from the \`x-properties-added-in-version\` list on \`${e.parentPath}\` in \`${e.file}\`, or regenerate \`version-map.json\` so this location is tracked.`;
     default:
       return `**To fix this**: investigate \`${e.issue}\` at ${e.path}.`;
   }
