@@ -1,8 +1,17 @@
 # update-openapi-spec
 
-Adds the `x-added-in-version` OpenAPI extension to every operation **and
-schema property** in the Camunda 8 REST API spec files, so consumers know
-when each endpoint and field was introduced.
+Adds two OpenAPI extensions to the Camunda 8 REST API spec files so consumers
+know when each endpoint and field was introduced:
+
+- `x-added-in-version` — a string on every **operation** (e.g.
+  `x-added-in-version: '8.6'`).
+- `x-properties-added-in-version` — a list on every **schema parent** that
+  has versioned properties:
+  ```yaml
+  x-properties-added-in-version:
+    - propertyName: name
+      addedInVersion: '8.X'
+  ```
 
 ## Related repos
 
@@ -44,7 +53,7 @@ YAML file via `endpoint-map.json`, and writes
 corresponding spec file under `OCA_SPEC_PATH`.
 
 The second script reads every schema property from `version-map.json` and
-writes `x-added-in-version` onto the corresponding property in
+writes `x-properties-added-in-version` onto the corresponding parent in
 `OCA_SPEC_PATH`. The rules below are applied in order, per **upstream
 location** (after collapsing all bundled paths that resolve to the same node
 in the multi-file YAMLs).
@@ -63,7 +72,7 @@ ProcessInstanceResult:
       $ref: 'keys.yaml#/components/schemas/ProcessInstanceKey'
     businessId:
       $ref: 'identifiers.yaml#/components/schemas/BusinessId'
-  x-added-in-version:
+  x-properties-added-in-version:
     - propertyName: rootProcessInstanceKey
       addedInVersion: '8.9'
     - propertyName: businessId
@@ -223,7 +232,7 @@ runs the annotator/verifier against them.
 | `build:version-map` | Clones [`return-of-api-added-in-analysis`](https://github.com/camunda/return-of-api-added-in-analysis) at `RETURN_OF_API_REF`, runs its `npm run all`, and copies the resulting `output/version-map.json` to `VERSION_MAP_PATH`. Skips if the file already exists. Throws (no silent failure) if the upstream produced no map. |
 | `build:artefacts` | Convenience wrapper — runs both build steps in order. |
 | `update:operations` | `build:artefacts` + writes operation-level `x-added-in-version` into the YAMLs under `OCA_SPEC_PATH`. |
-| `update:properties` | `build:artefacts` + writes property-level `x-added-in-version` (parent-list form) into the YAMLs under `OCA_SPEC_PATH`. |
+| `update:properties` | `build:artefacts` + writes property-level `x-properties-added-in-version` (parent-list form) into the YAMLs under `OCA_SPEC_PATH`. Migrates any legacy parent-level `x-added-in-version` lists by deleting the old key and rewriting under the new one. |
 | `verify:specs` | `build:artefacts` + runs the local-developer verifier (`verify-specs.mjs`). Verbose, exits 0 on clean. |
 | `verify:specs:ci` | Runs the CI verifier (`verify-specs-ci.mjs`). **Does not** rebuild artefacts — assumes they exist (so CI can do the build once and reuse them). Always writes a Markdown report. |
 

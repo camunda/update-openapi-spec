@@ -233,7 +233,7 @@ function lookupParentLevelAnnotation(doc, inFilePath) {
   }
   const propName = inFilePath[inFilePath.length - 1];
   const parent = getAt(doc, inFilePath.slice(0, -2));
-  const list = parent && typeof parent === "object" ? parent["x-added-in-version"] : undefined;
+  const list = parent && typeof parent === "object" ? parent["x-properties-added-in-version"] : undefined;
   if (!Array.isArray(list)) return undefined;
   for (const entry of list) {
     if (entry && typeof entry === "object" && entry.propertyName === propName) {
@@ -261,12 +261,12 @@ for (const loc of expected.values()) {
   if (isPropertyChild) {
     const parent = getAt(doc, parentPath);
     parentHasList =
-      parent && typeof parent === "object" && Array.isArray(parent["x-added-in-version"]);
+      parent && typeof parent === "object" && Array.isArray(parent["x-properties-added-in-version"]);
   }
   if (loc.expectAnnotated) {
     if (actual === undefined) {
       propErrors.push({
-        issue: "MISSING_X_ADDED_IN_VERSION",
+        issue: "MISSING_X_PROPERTIES_ADDED_IN_VERSION",
         file: loc.file,
         path: loc.inFilePath.join("/"),
         parentPath: parentPath.join("/"),
@@ -346,13 +346,13 @@ function fixHintForOperation(e) {
 function fixHintForProperty(e) {
   const quotedName = e.propName ? JSON.stringify(e.propName) : null;
   switch (e.issue) {
-    case "MISSING_X_ADDED_IN_VERSION": {
+    case "MISSING_X_PROPERTIES_ADDED_IN_VERSION": {
       if (!e.propName) {
-        return `**To fix this**: add an \`x-added-in-version\` annotation for ${e.path} in \`${e.file}\` (expected version \`${e.expected}\`).`;
+        return `**To fix this**: add a \`x-properties-added-in-version\` annotation for ${e.path} in \`${e.file}\` (expected version \`${e.expected}\`).`;
       }
       if (e.parentHasList) {
         return [
-          `**To fix this**: add the following entry to the existing \`x-added-in-version\` list on \`${e.parentPath}\` in \`${e.file}\`:`,
+          `**To fix this**: add the following entry to the existing \`x-properties-added-in-version\` list on \`${e.parentPath}\` in \`${e.file}\`:`,
           "",
           "```yaml",
           `        - propertyName: ${quotedName}`,
@@ -361,10 +361,10 @@ function fixHintForProperty(e) {
         ].join("\n");
       }
       return [
-        `**To fix this**: add an \`x-added-in-version\` list to \`${e.parentPath}\` in \`${e.file}\`:`,
+        `**To fix this**: add a \`x-properties-added-in-version\` list to \`${e.parentPath}\` in \`${e.file}\`:`,
         "",
         "```yaml",
-        "      x-added-in-version:",
+        "      x-properties-added-in-version:",
         `        - propertyName: ${quotedName}`,
         `          addedInVersion: "${e.expected}"`,
         "```",
@@ -372,10 +372,10 @@ function fixHintForProperty(e) {
     }
     case "VERSION_MISMATCH": {
       if (!e.propName) {
-        return `**To fix this**: update the \`x-added-in-version\` of ${e.path} in \`${e.file}\` from \`${e.actual}\` to \`${e.expected}\`.`;
+        return `**To fix this**: update the \`x-properties-added-in-version\` of ${e.path} in \`${e.file}\` from \`${e.actual}\` to \`${e.expected}\`.`;
       }
       return [
-        `**To fix this**: in the \`x-added-in-version\` list on \`${e.parentPath}\` in \`${e.file}\`, change the \`addedInVersion\` of \`${e.propName}\` from \`${e.actual}\` to \`${e.expected}\`:`,
+        `**To fix this**: in the \`x-properties-added-in-version\` list on \`${e.parentPath}\` in \`${e.file}\`, change the \`addedInVersion\` of \`${e.propName}\` from \`${e.actual}\` to \`${e.expected}\`:`,
         "",
         "```yaml",
         `        - propertyName: ${quotedName}`,
@@ -384,7 +384,7 @@ function fixHintForProperty(e) {
       ].join("\n");
     }
     case "UNEXPECTED_ANNOTATION_ON_SUPPRESSED":
-      return `**To fix this**: remove the \`${e.propName ?? e.path}\` entry (\`addedInVersion: ${e.actual}\`) from the \`x-added-in-version\` list on \`${e.parentPath ?? e.path}\` in \`${e.file}\` (suppressed by ${e.suppressedBy}; aggregated intro is \`${e.intro}\`).`;
+      return `**To fix this**: remove the \`${e.propName ?? e.path}\` entry (\`addedInVersion: ${e.actual}\`) from the \`x-properties-added-in-version\` list on \`${e.parentPath ?? e.path}\` in \`${e.file}\` (suppressed by ${e.suppressedBy}; aggregated intro is \`${e.intro}\`).`;
     default:
       return `**To fix this**: investigate \`${e.issue}\` at ${e.path}.`;
   }
@@ -399,7 +399,7 @@ function fixHintForMissingGroup(errors) {
   ]);
   if (parentHasList) {
     return [
-      `**To fix this**: add the following entries to the existing \`x-added-in-version\` list on \`${parentPath}\` in \`${file}\`:`,
+      `**To fix this**: add the following entries to the existing \`x-properties-added-in-version\` list on \`${parentPath}\` in \`${file}\`:`,
       "",
       "```yaml",
       ...entries,
@@ -407,10 +407,10 @@ function fixHintForMissingGroup(errors) {
     ].join("\n");
   }
   return [
-    `**To fix this**: add an \`x-added-in-version\` list to \`${parentPath}\` in \`${file}\`:`,
+    `**To fix this**: add a \`x-properties-added-in-version\` list to \`${parentPath}\` in \`${file}\`:`,
     "",
     "```yaml",
-    "      x-added-in-version:",
+    "      x-properties-added-in-version:",
     ...entries,
     "```",
   ].join("\n");
@@ -426,7 +426,14 @@ const ruleDescriptions = {
 
 emit("# OpenAPI annotation verification");
 emit("");
-emit("**Status:** ❌ Errors found");
+const totalErrors = opErrors.length + extraOps.length + propErrors.length;
+const affectedFiles = new Set();
+for (const e of opErrors) if (e.file) affectedFiles.add(e.file);
+for (const e of extraOps) if (e.file) affectedFiles.add(e.file);
+for (const e of propErrors) if (e.file) affectedFiles.add(e.file);
+emit(
+  `**Status:** ❌ Found ${totalErrors} ${totalErrors === 1 ? "error" : "errors"} across ${affectedFiles.size} ${affectedFiles.size === 1 ? "file" : "files"}`
+);
 emit("");
 
 if (hasOpErrors) {
@@ -468,7 +475,7 @@ if (hasPropErrors) {
     if (printed.has(i)) continue;
     const e = propErrors[i];
     if (
-      e.issue === "MISSING_X_ADDED_IN_VERSION" &&
+      e.issue === "MISSING_X_PROPERTIES_ADDED_IN_VERSION" &&
       e.propName &&
       e.parentPath
     ) {
@@ -478,7 +485,7 @@ if (hasPropErrors) {
         const o = propErrors[j];
         if (
           !printed.has(j) &&
-          o.issue === "MISSING_X_ADDED_IN_VERSION" &&
+          o.issue === "MISSING_X_PROPERTIES_ADDED_IN_VERSION" &&
           o.propName &&
           o.parentPath &&
           `${o.file}::${o.parentPath}` === groupKey
@@ -487,7 +494,7 @@ if (hasPropErrors) {
           printed.add(j);
         }
       }
-      emit(`### \`MISSING_X_ADDED_IN_VERSION\` — \`${e.parentPath}\` (\`${e.file}\`)`);
+      emit(`### \`MISSING_X_PROPERTIES_ADDED_IN_VERSION\` — \`${e.parentPath}\` (\`${e.file}\`)`);
       emit("");
       for (const err of group) {
         emit(`- \`${err.path}\` — expected=\`${err.expected}\``);

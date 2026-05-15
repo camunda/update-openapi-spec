@@ -433,12 +433,12 @@ for (const [file, groups] of groupsByFile) {
     const itemIndent = childIndent + "  ";
     const fieldIndent = childIndent + "    ";
 
-    // Build the new x-added-in-version block (omitted entirely when the
+    // Build the new x-properties-added-in-version block (omitted entirely when the
     // entry list is empty — e.g. a legacy parent whose entries were all
     // suppressed by Phase 2).
     let block = "";
     if (entries.length > 0) {
-      block = `${childIndent}x-added-in-version:\n`;
+      block = `${childIndent}x-properties-added-in-version:\n`;
       for (const [name, ver] of entries) {
         block += `${itemIndent}- propertyName: ${yamlPropName(name)}\n`;
         block += `${fieldIndent}addedInVersion: "${ver}"\n`;
@@ -464,11 +464,30 @@ for (const [file, groups] of groupsByFile) {
       }
     }
 
-    // 2) Replace existing parent-level `x-added-in-version`, or insert a
+    // 2) Delete any legacy parent-level `x-added-in-version` list (the
+    //    previous key name); we are migrating those to
+    //    `x-properties-added-in-version`.
+    const legacyParentPair = parent.items.find(
+      (p) => (p.key?.value ?? p.key) === "x-added-in-version"
+    );
+    if (legacyParentPair && isSeq(legacyParentPair.value)) {
+      const keyStart = legacyParentPair.key.range[0];
+      const lineStart = content.lastIndexOf("\n", keyStart - 1) + 1;
+      const valNode = legacyParentPair.value;
+      let endIdx =
+        valNode?.range?.[2] ?? valNode?.range?.[1] ?? legacyParentPair.key.range[1];
+      if (endIdx > 0 && content[endIdx - 1] !== "\n") {
+        const nl = content.indexOf("\n", endIdx);
+        endIdx = nl === -1 ? content.length : nl + 1;
+      }
+      edits.push({ from: lineStart, to: endIdx, text: "" });
+    }
+
+    // 3) Replace existing parent-level `x-properties-added-in-version`, or insert a
     //    new one at the end of the parent mapping. When `block` is empty
     //    the existing block is removed (and nothing is inserted).
     const existingPair = parent.items.find(
-      (p) => (p.key?.value ?? p.key) === "x-added-in-version"
+      (p) => (p.key?.value ?? p.key) === "x-properties-added-in-version"
     );
     if (existingPair) {
       const keyStart = existingPair.key.range[0];

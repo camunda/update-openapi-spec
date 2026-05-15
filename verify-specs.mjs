@@ -265,7 +265,7 @@ function lookupParentLevelAnnotation(doc, inFilePath) {
   }
   const propName = inFilePath[inFilePath.length - 1];
   const parent = getAt(doc, inFilePath.slice(0, -2));
-  const list = parent && typeof parent === "object" ? parent["x-added-in-version"] : undefined;
+  const list = parent && typeof parent === "object" ? parent["x-properties-added-in-version"] : undefined;
   if (!Array.isArray(list)) return undefined;
   for (const entry of list) {
     if (entry && typeof entry === "object" && entry.propertyName === propName) {
@@ -293,7 +293,7 @@ for (const loc of expected.values()) {
   if (loc.expectAnnotated) {
     if (actual === undefined) {
       propErrors.push({
-        issue: "MISSING_X_ADDED_IN_VERSION",
+        issue: "MISSING_X_PROPERTIES_ADDED_IN_VERSION",
         file: loc.file,
         path: loc.inFilePath.join("/"),
         expected: loc.intro,
@@ -355,5 +355,14 @@ if (propErrors.length) {
 }
 
 if (errors.length || extraOps.length || propErrors.length) {
+  const total = errors.length + extraOps.length + propErrors.length;
+  const affectedFiles = new Set();
+  for (const e of errors) if (e.file) affectedFiles.add(e.file);
+  for (const e of extraOps) if (e.file) affectedFiles.add(e.file);
+  for (const e of propErrors) if (e.file) affectedFiles.add(e.file);
+  console.log("");
+  console.log(
+    `Found ${total} ${total === 1 ? "error" : "errors"} across ${affectedFiles.size} ${affectedFiles.size === 1 ? "file" : "files"}`
+  );
   process.exitCode = 1;
 }
