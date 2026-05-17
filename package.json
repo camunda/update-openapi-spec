@@ -9,7 +9,8 @@
     "update:operations": "npm run build:artefacts && node update-specs-operations.mjs",
     "update:properties": "npm run build:artefacts && node update-specs-properties.mjs",
     "verify:specs": "npm run build:artefacts && node verify-specs.mjs",
-    "verify:specs:ci": "node verify-specs-ci.mjs"
+    "verify:specs:ci": "node verify-specs-ci.mjs",
+    "generate:workflow-matrix": "node generate-workflow-matrix.mjs"
   },
   "dependencies": {
     "camunda-schema-bundler": "^2.4.1",
