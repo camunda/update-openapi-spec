@@ -1,30 +1,42 @@
 #!/usr/bin/env node
 /**
- * CI-oriented variant of verify-specs.mjs.
+ * PR-oriented CI variant of verify-specs.mjs.
  *
- * Same checks as verify-specs.mjs (operation-level and property-level
- * `x-added-in-version` annotations against the version-map), but output
- * is tuned for an optional GitHub Actions workflow:
+ * Performs the same checks (operation-level `x-added-in-version` and
+ * property-level `x-properties-added-in-version` annotations against the
+ * version-map) but is tuned for use as a non-blocking PR check:
  *
- *  - On success: a single line — "No errors across all properties and
- *    operations in the spec".
- *  - On failure: a list of actionable fix instructions, followed by a
- *    "Detailed Verification Results" section that includes ONLY the
- *    sub-sections (Operation / Property) that produced errors.
+ *   - Each error is emitted as a single GitHub Actions `::warning::`
+ *     workflow command, anchored to the relevant file and line number,
+ *     so it surfaces inline in the PR "Files changed" view.
+ *   - The script always exits 0. The workflow that calls it is expected
+ *     to NOT be a required status check, so warnings never block merge.
  *
- * Exits with code 1 when any error is found.
+ * Required env:
+ *   OCA_SPEC_PATH        absolute path to the spec dir (multi-file YAMLs)
+ *   VERSION_MAP_PATH     path to version-map.json
+ *   ENDPOINT_MAP_PATH    path to endpoint-map.json
+ *
+ * Optional env:
+ *   ANNOTATION_PATH_PREFIX  prefix prepended to each YAML filename when
+ *                           emitting `::warning file=...`. Defaults to
+ *                           "zeebe/gateway-protocol/src/main/proto/v2"
+ *                           (the canonical location inside camunda/camunda).
+ *                           Set to empty string to emit bare filenames.
+ *   GITHUB_STEP_SUMMARY     when set, a short Markdown summary is appended.
  */
 
 import "dotenv/config";
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { parse } from "yaml";
+import { appendFileSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { LineCounter, parseDocument } from "yaml";
 
-const scriptDir = dirname(fileURLToPath(import.meta.url));
 const specDir = process.env.OCA_SPEC_PATH;
 const versionMapPath = process.env.VERSION_MAP_PATH;
 const endpointMapPath = process.env.ENDPOINT_MAP_PATH;
+const annotationPrefix =
+  process.env.ANNOTATION_PATH_PREFIX ??
+  "zeebe/gateway-protocol/src/main/proto/v2";
 
 if (!specDir || !versionMapPath || !endpointMapPath) {
   console.error(
@@ -39,16 +51,61 @@ const endpointMap = JSON.parse(readFileSync(endpointMapPath, "utf-8"));
 const endpointToFile = new Map(Object.entries(endpointMap));
 const deletedOps = new Set(Object.keys(versionMap.deletedOperations || {}));
 
-const yamlCache = new Map();
+// ── YAML loading with line-number tracking ───────────────────────────────────
+
+const yamlCache = new Map(); // file -> { doc, lineCounter } | null
 function loadYaml(file) {
   if (!yamlCache.has(file)) {
     try {
-      yamlCache.set(file, parse(readFileSync(join(specDir, file), "utf-8")));
+      const src = readFileSync(join(specDir, file), "utf-8");
+      const lineCounter = new LineCounter();
+      const doc = parseDocument(src, { lineCounter });
+      yamlCache.set(file, { doc, lineCounter });
     } catch {
       yamlCache.set(file, null);
     }
   }
   return yamlCache.get(file);
+}
+
+function jsValue(entry) {
+  if (entry == null) return entry;
+  return entry.doc ? entry.doc.toJS({ maxAliasCount: -1 }) : null;
+}
+
+function lineOfPath(entry, path) {
+  if (!entry) return 1;
+  const { doc, lineCounter } = entry;
+  const node = doc.getIn(path, true);
+  if (node && typeof node === "object" && Array.isArray(node.range)) {
+    const offset = node.range[0];
+    if (typeof offset === "number") {
+      const pos = lineCounter.linePos(offset);
+      if (pos && pos.line) return pos.line;
+    }
+  }
+  // Walk back up the path until we find a node with a range.
+  for (let i = path.length - 1; i >= 0; i--) {
+    const prefix = path.slice(0, i);
+    const parent = doc.getIn(prefix, true);
+    if (parent && typeof parent === "object" && Array.isArray(parent.range)) {
+      const offset = parent.range[0];
+      if (typeof offset === "number") {
+        const pos = lineCounter.linePos(offset);
+        if (pos && pos.line) return pos.line;
+      }
+    }
+  }
+  return 1;
+}
+
+function getAt(obj, path) {
+  let node = obj;
+  for (const seg of path) {
+    if (node == null || typeof node !== "object") return undefined;
+    node = node[seg];
+  }
+  return node;
 }
 
 // ── Operation verification ───────────────────────────────────────────────────
@@ -75,26 +132,59 @@ for (const [opKey, info] of Object.entries(versionMap.operations)) {
   const method = opKey.slice(0, spaceIdx).toLowerCase();
   const apiPath = opKey.slice(spaceIdx + 1);
 
-  const doc = loadYaml(sourceFile);
+  const entry = loadYaml(sourceFile);
+  const doc = jsValue(entry);
   if (!doc) {
     opErrors.push({ op: opKey, issue: "YAML_FILE_NOT_FOUND", file: sourceFile });
     continue;
   }
   if (!doc.paths || !doc.paths[apiPath]) {
-    opErrors.push({ op: opKey, issue: "PATH_NOT_IN_YAML", file: sourceFile, path: apiPath });
+    opErrors.push({
+      op: opKey,
+      issue: "PATH_NOT_IN_YAML",
+      file: sourceFile,
+      path: apiPath,
+      line: 1,
+    });
     continue;
   }
   if (!doc.paths[apiPath][method]) {
-    opErrors.push({ op: opKey, issue: "METHOD_NOT_IN_YAML", file: sourceFile, path: apiPath, method });
+    opErrors.push({
+      op: opKey,
+      issue: "METHOD_NOT_IN_YAML",
+      file: sourceFile,
+      path: apiPath,
+      method,
+      line: lineOfPath(entry, ["paths", apiPath]),
+    });
     continue;
   }
 
   const operation = doc.paths[apiPath][method];
   const actual = operation["x-added-in-version"];
+  const opLine = lineOfPath(entry, ["paths", apiPath, method]);
   if (!actual) {
-    opErrors.push({ op: opKey, issue: "MISSING_X_ADDED_IN_VERSION", file: sourceFile, expected: expectedVersion });
+    opErrors.push({
+      op: opKey,
+      issue: "MISSING_X_ADDED_IN_VERSION",
+      file: sourceFile,
+      expected: expectedVersion,
+      line: opLine,
+    });
   } else if (String(actual) !== String(expectedVersion)) {
-    opErrors.push({ op: opKey, issue: "VERSION_MISMATCH", file: sourceFile, expected: expectedVersion, actual: String(actual) });
+    opErrors.push({
+      op: opKey,
+      issue: "VERSION_MISMATCH",
+      file: sourceFile,
+      expected: expectedVersion,
+      actual: String(actual),
+      line: lineOfPath(entry, [
+        "paths",
+        apiPath,
+        method,
+        "x-added-in-version",
+      ]),
+    });
   } else {
     opOk++;
   }
@@ -106,7 +196,8 @@ const allYamlFiles = [...new Set(Object.values(endpointMap))];
 const extraOps = [];
 
 for (const file of allYamlFiles) {
-  const doc = loadYaml(file);
+  const entry = loadYaml(file);
+  const doc = jsValue(entry);
   if (!doc || !doc.paths) continue;
   for (const [path, methods] of Object.entries(doc.paths)) {
     for (const method of ["get", "post", "put", "patch", "delete"]) {
@@ -114,7 +205,13 @@ for (const file of allYamlFiles) {
       const opKey = method.toUpperCase() + " " + path;
       if (!versionMapOps.has(opKey)) {
         const has = methods[method]["x-added-in-version"];
-        extraOps.push({ op: opKey, file, hasAnnotation: !!has, annotationValue: has || null });
+        extraOps.push({
+          op: opKey,
+          file,
+          hasAnnotation: !!has,
+          annotationValue: has || null,
+          line: lineOfPath(entry, ["paths", path, method]),
+        });
       }
     }
   }
@@ -146,15 +243,6 @@ function resolveFileAndPath(propPath, endpointPath) {
 
 function locationKey(file, inFilePath) {
   return `${file}\x00${inFilePath.join("\x00")}`;
-}
-
-function getAt(obj, path) {
-  let node = obj;
-  for (const seg of path) {
-    if (node == null || typeof node !== "object") return undefined;
-    node = node[seg];
-  }
-  return node;
 }
 
 const parentOf = new Map();
@@ -235,22 +323,18 @@ function lookupParentLevelAnnotation(doc, inFilePath) {
   const parent = getAt(doc, inFilePath.slice(0, -2));
   const list = parent && typeof parent === "object" ? parent["x-properties-added-in-version"] : undefined;
   if (!Array.isArray(list)) return undefined;
-  for (const entry of list) {
-    if (entry && typeof entry === "object" && entry.propertyName === propName) {
-      return entry.addedInVersion;
+  for (const item of list) {
+    if (item && typeof item === "object" && item.propertyName === propName) {
+      return item.addedInVersion;
     }
   }
   return undefined;
 }
 
-// Walk every YAML in the spec dir (including schema-only files like
-// keys.yaml that aren't endpoint-map members) and collect every
-// `x-properties-added-in-version` entry. Cross-checked below against
-// `expected` so entries unjustified by the version-map can be flagged.
 const allSpecYamlFiles = readdirSync(specDir).filter((f) => f.endsWith(".yaml"));
 for (const f of allSpecYamlFiles) loadYaml(f);
 
-const yamlPropAnnotations = []; // {file, parentPath, propName, addedInVersion}
+const yamlPropAnnotations = [];
 function walkForPropertyAnnotations(node, path, file) {
   if (node == null || typeof node !== "object") return;
   if (Array.isArray(node)) {
@@ -261,13 +345,13 @@ function walkForPropertyAnnotations(node, path, file) {
   }
   const list = node["x-properties-added-in-version"];
   if (Array.isArray(list)) {
-    for (const entry of list) {
-      if (entry && typeof entry === "object" && typeof entry.propertyName === "string") {
+    for (const item of list) {
+      if (item && typeof item === "object" && typeof item.propertyName === "string") {
         yamlPropAnnotations.push({
           file,
           parentPath: path,
-          propName: entry.propertyName,
-          addedInVersion: entry.addedInVersion,
+          propName: item.propertyName,
+          addedInVersion: item.addedInVersion,
         });
       }
     }
@@ -278,7 +362,7 @@ function walkForPropertyAnnotations(node, path, file) {
   }
 }
 for (const f of allSpecYamlFiles) {
-  const doc = loadYaml(f);
+  const doc = jsValue(loadYaml(f));
   if (doc) walkForPropertyAnnotations(doc, [], f);
 }
 
@@ -286,7 +370,8 @@ let propOk = 0;
 let propMissingTarget = 0;
 const propErrors = [];
 for (const loc of expected.values()) {
-  const doc = loadYaml(loc.file);
+  const entry = loadYaml(loc.file);
+  const doc = jsValue(entry);
   if (!doc) { propMissingTarget++; continue; }
   const node = getAt(doc, loc.inFilePath);
   if (node == null) { propMissingTarget++; continue; }
@@ -302,26 +387,29 @@ for (const loc of expected.values()) {
     parentHasList =
       parent && typeof parent === "object" && Array.isArray(parent["x-properties-added-in-version"]);
   }
+
   if (loc.expectAnnotated) {
     if (actual === undefined) {
       propErrors.push({
         issue: "MISSING_X_PROPERTIES_ADDED_IN_VERSION",
         file: loc.file,
-        path: loc.inFilePath.join("/"),
+        path: inFilePath.join("/"),
         parentPath: parentPath.join("/"),
         propName,
         parentHasList,
         expected: loc.intro,
+        line: lineOfPath(entry, inFilePath),
       });
     } else if (String(actual) !== String(loc.intro)) {
       propErrors.push({
         issue: "VERSION_MISMATCH",
         file: loc.file,
-        path: loc.inFilePath.join("/"),
+        path: inFilePath.join("/"),
         parentPath: parentPath.join("/"),
         propName,
         expected: loc.intro,
         actual: String(actual),
+        line: lineOfPath(entry, [...parentPath, "x-properties-added-in-version"]),
       });
     } else {
       propOk++;
@@ -331,12 +419,13 @@ for (const loc of expected.values()) {
       propErrors.push({
         issue: "UNEXPECTED_ANNOTATION_ON_SUPPRESSED",
         file: loc.file,
-        path: loc.inFilePath.join("/"),
+        path: inFilePath.join("/"),
         parentPath: parentPath.join("/"),
         propName,
         suppressedBy: loc.reason,
         intro: loc.intro,
         actual: String(actual),
+        line: lineOfPath(entry, [...parentPath, "x-properties-added-in-version"]),
       });
     } else {
       propOk++;
@@ -344,14 +433,12 @@ for (const loc of expected.values()) {
   }
 }
 
-// Cross-check every YAML annotation entry against `expected`. Anything not
-// covered there is either an orphan (named property no longer exists) or
-// unknown to the version-map (e.g. schema not reached from any endpoint).
 for (const ann of yamlPropAnnotations) {
   const inFilePath = [...ann.parentPath, "properties", ann.propName];
   const key = locationKey(ann.file, inFilePath);
   if (expected.has(key)) continue;
-  const doc = loadYaml(ann.file);
+  const entry = loadYaml(ann.file);
+  const doc = jsValue(entry);
   const parent = doc ? getAt(doc, ann.parentPath) : null;
   const propsMap =
     parent && typeof parent === "object" && parent.properties && typeof parent.properties === "object"
@@ -365,13 +452,13 @@ for (const ann of yamlPropAnnotations) {
     parentPath: ann.parentPath.join("/"),
     propName: ann.propName,
     actual: ann.addedInVersion != null ? String(ann.addedInVersion) : null,
+    line: lineOfPath(entry, [...ann.parentPath, "x-properties-added-in-version"]),
   });
 }
 
-// Operation-level x-added-in-version on operations that are flagged as
-// removed in the version-map.
 for (const f of allSpecYamlFiles) {
-  const doc = loadYaml(f);
+  const entry = loadYaml(f);
+  const doc = jsValue(entry);
   if (!doc || !doc.paths) continue;
   for (const [apiPath, methods] of Object.entries(doc.paths)) {
     if (!methods || typeof methods !== "object") continue;
@@ -385,293 +472,160 @@ for (const f of allSpecYamlFiles) {
           issue: "UNEXPECTED_ANNOTATION_ON_DELETED_OPERATION",
           file: f,
           actual: String(op["x-added-in-version"]),
+          line: lineOfPath(entry, [
+            "paths",
+            apiPath,
+            method,
+            "x-added-in-version",
+          ]),
         });
       }
     }
   }
 }
 
-// ── Output ──────────────────────────────────────────────────────────────────
+// ── Output: GitHub Actions warning annotations ──────────────────────────────
 
-const hasOpErrors = opErrors.length > 0 || extraOps.length > 0;
-const hasPropErrors = propErrors.length > 0;
-const hasErrors = hasOpErrors || hasPropErrors;
-
-const reportPath = resolve(
-  process.env.REPORT_PATH ?? join(scriptDir, "output", "verify-report.md")
-);
-const out = [];
-const emit = (line = "") => out.push(line);
-
-if (!hasErrors) {
-  emit("# OpenAPI annotation verification");
-  emit("");
-  emit("**Status:** ✅ No errors across all properties and operations in the spec");
-  finish(0);
+function annotationPath(file) {
+  if (!file) return "";
+  return annotationPrefix ? `${annotationPrefix}/${file}` : file;
 }
 
-function fixHintForOperation(e) {
+// Escape per GitHub Actions workflow command rules.
+function escapeProp(s) {
+  return String(s).replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A").replace(/:/g, "%3A").replace(/,/g, "%2C");
+}
+function escapeMsg(s) {
+  return String(s).replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
+}
+
+function emitWarning({ file, line, title, message }) {
+  const parts = [];
+  if (file) parts.push(`file=${escapeProp(annotationPath(file))}`);
+  if (typeof line === "number" && line > 0) parts.push(`line=${line}`);
+  if (title) parts.push(`title=${escapeProp(title)}`);
+  const head = parts.length ? `::warning ${parts.join(",")}::` : "::warning::";
+  console.log(head + escapeMsg(message));
+}
+
+function messageForOperation(e) {
   switch (e.issue) {
     case "MISSING_X_ADDED_IN_VERSION":
-      return `**To fix this**: add the annotation \`x-added-in-version: ${e.expected}\` to the \`${e.op}\` operation in \`${e.file}\`.`;
+      return `Operation \`${e.op}\` is missing \`x-added-in-version\`. Expected: ${e.expected}.`;
     case "VERSION_MISMATCH":
-      return `**To fix this**: update the \`x-added-in-version\` of operation \`${e.op}\` in \`${e.file}\` from \`${e.actual}\` to \`${e.expected}\`.`;
+      return `Operation \`${e.op}\` has \`x-added-in-version: ${e.actual}\` but version-map says ${e.expected}.`;
     case "NO_ENDPOINT_MAP_ENTRY":
-      return `**To fix this**: regenerate \`endpoint-map.json\` (\`npm run build:endpoint-map\`) so it includes \`${e.op}\`.`;
+      return `Operation \`${e.op}\` is in version-map but missing from endpoint-map.json. Regenerate the endpoint map.`;
     case "YAML_FILE_NOT_FOUND":
-      return `**To fix this**: ensure \`${e.file}\` exists in the upstream spec directory.`;
+      return `Operation \`${e.op}\` references YAML file \`${e.file}\` which does not exist in the spec dir.`;
     case "PATH_NOT_IN_YAML":
-      return `**To fix this**: add path \`${e.path}\` to \`${e.file}\` or update \`endpoint-map.json\`.`;
+      return `Path \`${e.path}\` is missing from \`${e.file}\` (required for operation \`${e.op}\`).`;
     case "METHOD_NOT_IN_YAML":
-      return `**To fix this**: add method \`${e.method.toUpperCase()}\` for path \`${e.path}\` in \`${e.file}\` or update \`endpoint-map.json\`.`;
+      return `Method \`${e.method?.toUpperCase()}\` is missing for path \`${e.path}\` in \`${e.file}\` (required for operation \`${e.op}\`).`;
     case "UNEXPECTED_ANNOTATION_ON_DELETED_OPERATION":
-      return `**To fix this**: remove the \`x-added-in-version: ${e.actual}\` annotation from operation \`${e.op}\` in \`${e.file}\` — the version-map flags this operation as deleted.`;
+      return `Operation \`${e.op}\` is marked deleted in the version-map but still carries \`x-added-in-version: ${e.actual}\`. Remove the annotation (and likely the operation).`;
     default:
-      return `**To fix this**: investigate \`${e.issue}\` for \`${e.op}\`.`;
+      return `${e.issue}: ${e.op}`;
   }
 }
 
-function fixHintForProperty(e) {
-  const quotedName = e.propName ? JSON.stringify(e.propName) : null;
+function messageForProperty(e) {
   switch (e.issue) {
-    case "MISSING_X_PROPERTIES_ADDED_IN_VERSION": {
-      if (!e.propName) {
-        return `**To fix this**: add a \`x-properties-added-in-version\` annotation for ${e.path} in \`${e.file}\` (expected version \`${e.expected}\`).`;
-      }
-      if (e.parentHasList) {
-        return [
-          `**To fix this**: add the following entry to the existing \`x-properties-added-in-version\` list on \`${e.parentPath}\` in \`${e.file}\`:`,
-          "",
-          "```yaml",
-          `        - propertyName: ${quotedName}`,
-          `          addedInVersion: "${e.expected}"`,
-          "```",
-        ].join("\n");
-      }
-      return [
-        `**To fix this**: add a \`x-properties-added-in-version\` list to \`${e.parentPath}\` in \`${e.file}\`:`,
-        "",
-        "```yaml",
-        "      x-properties-added-in-version:",
-        `        - propertyName: ${quotedName}`,
-        `          addedInVersion: "${e.expected}"`,
-        "```",
-      ].join("\n");
-    }
-    case "VERSION_MISMATCH": {
-      if (!e.propName) {
-        return `**To fix this**: update the \`x-properties-added-in-version\` of ${e.path} in \`${e.file}\` from \`${e.actual}\` to \`${e.expected}\`.`;
-      }
-      return [
-        `**To fix this**: in the \`x-properties-added-in-version\` list on \`${e.parentPath}\` in \`${e.file}\`, change the \`addedInVersion\` of \`${e.propName}\` from \`${e.actual}\` to \`${e.expected}\`:`,
-        "",
-        "```yaml",
-        `        - propertyName: ${quotedName}`,
-        `          addedInVersion: "${e.expected}"`,
-        "```",
-      ].join("\n");
-    }
+    case "MISSING_X_PROPERTIES_ADDED_IN_VERSION":
+      return `Property \`${e.propName ?? e.path}\` on \`${e.parentPath ?? "(root)"}\` is missing an \`x-properties-added-in-version\` entry. Expected version: ${e.expected}.`;
+    case "VERSION_MISMATCH":
+      return `Property \`${e.propName ?? e.path}\` on \`${e.parentPath}\` has \`addedInVersion: ${e.actual}\` but expected ${e.expected}.`;
     case "UNEXPECTED_ANNOTATION_ON_SUPPRESSED":
-      return `**To fix this**: remove the \`${e.propName ?? e.path}\` entry (\`addedInVersion: ${e.actual}\`) from the \`x-properties-added-in-version\` list on \`${e.parentPath ?? e.path}\` in \`${e.file}\` (suppressed by ${e.suppressedBy}; aggregated intro is \`${e.intro}\`).`;
+      return `Property \`${e.propName ?? e.path}\` on \`${e.parentPath}\` carries \`addedInVersion: ${e.actual}\` but should be suppressed by ${e.suppressedBy} (aggregated intro: ${e.intro}). Remove the entry.`;
     case "ORPHAN_PROPERTY_ANNOTATION":
-      return `**To fix this**: remove the \`${e.propName}\` entry from the \`x-properties-added-in-version\` list on \`${e.parentPath}\` in \`${e.file}\` — no such property exists on this schema.`;
+      return `\`x-properties-added-in-version\` on \`${e.parentPath}\` lists \`${e.propName}\`, but no such property exists on this schema. Remove the entry.`;
     case "UNKNOWN_PROPERTY_ANNOTATION":
-      return `**To fix this**: either remove the \`${e.propName}\` entry from the \`x-properties-added-in-version\` list on \`${e.parentPath}\` in \`${e.file}\`, or regenerate \`version-map.json\` so this location is tracked.`;
+      return `\`x-properties-added-in-version\` on \`${e.parentPath}\` lists \`${e.propName}\` (addedInVersion: ${e.actual}), but the version-map does not track this location. Either remove the entry or regenerate version-map.json.`;
     default:
-      return `**To fix this**: investigate \`${e.issue}\` at ${e.path}.`;
+      return `${e.issue}: ${e.path}`;
   }
 }
 
-function fixHintForMissingGroup(errors) {
-  // All entries share file + parentPath + parentHasList by construction.
-  const { file, parentPath, parentHasList } = errors[0];
-  const entries = errors.flatMap((e) => [
-    `        - propertyName: ${JSON.stringify(e.propName)}`,
-    `          addedInVersion: "${e.expected}"`,
-  ]);
-  if (parentHasList) {
-    return [
-      `**To fix this**: add the following entries to the existing \`x-properties-added-in-version\` list on \`${parentPath}\` in \`${file}\`:`,
-      "",
-      "```yaml",
-      ...entries,
-      "```",
-    ].join("\n");
-  }
-  return [
-    `**To fix this**: add a \`x-properties-added-in-version\` list to \`${parentPath}\` in \`${file}\`:`,
-    "",
-    "```yaml",
-    "      x-properties-added-in-version:",
-    ...entries,
-    "```",
-  ].join("\n");
+for (const e of opErrors) {
+  emitWarning({
+    file: e.file,
+    line: e.line,
+    title: `OpenAPI: ${e.issue}`,
+    message: messageForOperation(e),
+  });
+}
+for (const e of extraOps) {
+  emitWarning({
+    file: e.file,
+    line: e.line,
+    title: "OpenAPI: UNKNOWN_OPERATION_IN_YAML",
+    message: `Operation \`${e.op}\` exists in \`${e.file}\` but is not in version-map.json. Add it to the version-map or remove it from the YAML.`,
+  });
+}
+for (const e of propErrors) {
+  emitWarning({
+    file: e.file,
+    line: e.line,
+    title: `OpenAPI: ${e.issue}`,
+    message: messageForProperty(e),
+  });
 }
 
-const ruleDescriptions = {
-  rule1: "Rule 1 — single consumer matches endpoint (annotation should be suppressed)",
-  rule2: "Rule 2 — every parent location shares the intro (annotation should be suppressed)",
-  rule3: "Rule 3 — every shared consumer matches endpoint (annotation should be suppressed)",
-  annotate:
-    "Annotation required — property intro differs from its consumer endpoint(s) and no parent annotation covers it",
-};
+// ── Summary ─────────────────────────────────────────────────────────────────
 
-emit("# OpenAPI annotation verification");
-emit("");
 const totalErrors = opErrors.length + extraOps.length + propErrors.length;
 const affectedFiles = new Set();
 for (const e of opErrors) if (e.file) affectedFiles.add(e.file);
 for (const e of extraOps) if (e.file) affectedFiles.add(e.file);
 for (const e of propErrors) if (e.file) affectedFiles.add(e.file);
-emit(
-  `**Status:** ❌ Found ${totalErrors} ${totalErrors === 1 ? "error" : "errors"} across ${affectedFiles.size} ${affectedFiles.size === 1 ? "file" : "files"}`
-);
-emit("");
 
-if (hasOpErrors) {
-  emit("## Operation errors");
-  emit("");
-  for (const e of opErrors) {
-    const extras = [
-      e.expected ? "expected=`" + e.expected + "`" : null,
-      e.actual ? "actual=`" + e.actual + "`" : null,
-    ].filter(Boolean).join(", ");
-    emit(`### \`${e.issue}\` — \`${e.op}\``);
-    emit("");
-    if (e.file) emit(`- **File:** \`${e.file}\``);
-    if (extras) emit(`- ${extras}`);
-    emit("");
-    emit(fixHintForOperation(e));
-    emit("");
-  }
-  for (const e of extraOps) {
-    emit(`### \`UNKNOWN_OPERATION_IN_YAML\` — \`${e.op}\``);
-    emit("");
-    emit(`- **File:** \`${e.file}\``);
-    emit(
-      `- ${e.hasAnnotation ? "Has `x-added-in-version`=`" + e.annotationValue + "`" : "No `x-added-in-version`"}`
-    );
-    emit("");
-    emit(
-      `**To fix this**: either add \`${e.op}\` to the version-map (regenerate \`version-map.json\`) or remove the operation from \`${e.file}\`.`
-    );
-    emit("");
-  }
+if (totalErrors === 0) {
+  console.log("OpenAPI annotation verification: no errors.");
+} else {
+  console.log(
+    `OpenAPI annotation verification: ${totalErrors} ${totalErrors === 1 ? "warning" : "warnings"} across ${affectedFiles.size} ${affectedFiles.size === 1 ? "file" : "files"} (non-blocking).`
+  );
 }
 
-if (hasPropErrors) {
-  emit("## Property errors");
-  emit("");
-  const printed = new Set();
-  for (let i = 0; i < propErrors.length; i++) {
-    if (printed.has(i)) continue;
-    const e = propErrors[i];
-    if (
-      e.issue === "MISSING_X_PROPERTIES_ADDED_IN_VERSION" &&
-      e.propName &&
-      e.parentPath
-    ) {
-      const groupKey = `${e.file}::${e.parentPath}`;
-      const group = [];
-      for (let j = i; j < propErrors.length; j++) {
-        const o = propErrors[j];
-        if (
-          !printed.has(j) &&
-          o.issue === "MISSING_X_PROPERTIES_ADDED_IN_VERSION" &&
-          o.propName &&
-          o.parentPath &&
-          `${o.file}::${o.parentPath}` === groupKey
-        ) {
-          group.push(o);
-          printed.add(j);
-        }
+if (process.env.GITHUB_STEP_SUMMARY) {
+  const lines = [];
+  lines.push("# OpenAPI annotation verification (non-blocking)");
+  lines.push("");
+  if (totalErrors === 0) {
+    lines.push("**Status:** ✅ No errors.");
+  } else {
+    lines.push(
+      `**Status:** ⚠️ ${totalErrors} ${totalErrors === 1 ? "warning" : "warnings"} across ${affectedFiles.size} ${affectedFiles.size === 1 ? "file" : "files"}.`
+    );
+    lines.push("");
+    lines.push("See the **Files changed** tab for inline annotations.");
+    lines.push("");
+    if (opErrors.length || extraOps.length) {
+      lines.push("## Operation warnings");
+      lines.push("");
+      for (const e of opErrors) {
+        lines.push(`- \`${e.issue}\` — \`${e.op}\`${e.file ? ` (\`${e.file}\`${e.line ? `:${e.line}` : ""})` : ""}`);
       }
-      emit(`### \`MISSING_X_PROPERTIES_ADDED_IN_VERSION\` — \`${e.parentPath}\` (\`${e.file}\`)`);
-      emit("");
-      for (const err of group) {
-        emit(`- \`${err.path}\` — expected=\`${err.expected}\``);
+      for (const e of extraOps) {
+        lines.push(`- \`UNKNOWN_OPERATION_IN_YAML\` — \`${e.op}\` (\`${e.file}\`${e.line ? `:${e.line}` : ""})`);
       }
-      emit("");
-      emit(fixHintForMissingGroup(group));
-      emit("");
-      continue;
+      lines.push("");
     }
-    const extras = [
-      e.expected ? "expected=`" + e.expected + "`" : null,
-      e.actual ? "actual=`" + e.actual + "`" : null,
-      e.suppressedBy ? "suppressedBy=`" + e.suppressedBy + "`" : null,
-      e.intro && !e.expected ? "intro=`" + e.intro + "`" : null,
-    ].filter(Boolean).join(", ");
-    emit(`### \`${e.issue}\` — \`${e.path}\``);
-    emit("");
-    emit(`- **File:** \`${e.file}\``);
-    if (extras) emit(`- ${extras}`);
-    emit("");
-    emit(fixHintForProperty(e));
-    emit("");
-    printed.add(i);
-  }
-}
-
-emit("======== Detailed verification results analysis  =================");
-emit("");
-
-if (hasPropErrors) {
-  const brokenRules = new Set();
-  for (const e of propErrors) brokenRules.add(e.suppressedBy ?? "annotate");
-  emit("### Rules broken");
-  emit("");
-  let ruleNum = 1;
-  for (const ruleKey of ["annotate", "rule1", "rule2", "rule3"]) {
-    if (brokenRules.has(ruleKey)) {
-      emit(`- **#${ruleNum}** — ${ruleDescriptions[ruleKey]}`);
-      ruleNum++;
+    if (propErrors.length) {
+      lines.push("## Property warnings");
+      lines.push("");
+      for (const e of propErrors) {
+        lines.push(`- \`${e.issue}\` — \`${e.path}\` (\`${e.file}\`${e.line ? `:${e.line}` : ""})`);
+      }
+      lines.push("");
     }
   }
-  emit("");
-}
-
-if (hasOpErrors) {
-  emit("### Operations");
-  emit("");
-  emit(`- Operations in version-map: ${Object.keys(versionMap.operations).length}`);
-  emit(`- OK: ${opOk}`);
-  emit(`- Deleted (skipped): ${opSkippedDeleted}`);
-  emit(`- Errors: ${opErrors.length}`);
-  if (extraOps.length) {
-    emit(`- Operations in YAML but NOT in version-map: ${extraOps.length}`);
+  try {
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
+  } catch (err) {
+    console.error(`Failed to append job summary: ${err.message}`);
   }
-  emit("");
 }
 
-if (hasPropErrors) {
-  const byReason = { rule1: 0, rule3: 0, rule2: 0 };
-  let expectedAnnotatedCount = 0;
-  for (const l of expected.values()) {
-    if (l.expectAnnotated) expectedAnnotatedCount++;
-    else byReason[l.reason] = (byReason[l.reason] ?? 0) + 1;
-  }
-  emit("### Properties");
-  emit("");
-  emit(`- Property locations checked: ${expected.size}`);
-  emit(`- Expected annotated: ${expectedAnnotatedCount}`);
-  emit(`- Expected suppressed (Rule 1 — single consumer matches endpoint): ${byReason.rule1}`);
-  emit(`- Expected suppressed (Rule 3 — every shared consumer matches endpoint): ${byReason.rule3}`);
-  emit(`- Expected suppressed (Rule 2 — every parent location shares the intro): ${byReason.rule2}`);
-  emit(`- OK: ${propOk}`);
-  emit(`- Target node missing in YAML: ${propMissingTarget}`);
-  emit(`- Errors: ${propErrors.length}`);
-  emit("");
-}
-
-finish(1);
-
-function finish(code) {
-  const text = out.join("\n");
-  mkdirSync(dirname(reportPath), { recursive: true });
-  writeFileSync(reportPath, text + "\n");
-  console.log(text);
-  console.log("");
-  console.log(`Report written to: ${reportPath}`);
-  process.exit(code);
-}
+// Always exit 0 — this script is meant to be a non-blocking PR check.
+process.exit(0);
