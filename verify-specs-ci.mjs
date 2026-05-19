@@ -32,9 +32,6 @@ const annotationPrefix =
 const inputs = loadInputs();
 const result = verifySpecs(inputs);
 
-// Shared CLI output. CI never appends the detail trailer.
-printCliReport(result, inputs.versionMap);
-
 const { opErrors, extraOps, propErrors } = result;
 
 // ── GitHub Actions warning annotations ──────────────────────────────────────
@@ -106,9 +103,18 @@ function messageForProperty(e) {
 
 const totalErrors = opErrors.length + extraOps.length + propErrors.length;
 
+const affectedFiles = new Set();
+for (const e of opErrors) if (e.file) affectedFiles.add(e.file);
+for (const e of extraOps) if (e.file) affectedFiles.add(e.file);
+for (const e of propErrors) if (e.file) affectedFiles.add(e.file);
+
+// ── Status line (shared core, summary-only) ─────────────────────────────────
+
+printCliReport(result, inputs.versionMap, { summaryOnly: true });
+console.log("");
+
 if (totalErrors > 0) {
-  console.log("");
-  console.log("=== GitHub Actions annotations ===");
+  console.log("=== Inline PR annotations ===");
   console.log("");
 
   for (const e of opErrors) {
@@ -135,22 +141,13 @@ if (totalErrors > 0) {
       message: messageForProperty(e),
     });
   }
+  console.log("");
 }
 
-// ── GitHub job summary ──────────────────────────────────────────────────────
+// ── Fix sections (shared core, stats block suppressed) ──────────────────────
 
-const affectedFiles = new Set();
-for (const e of opErrors) if (e.file) affectedFiles.add(e.file);
-for (const e of extraOps) if (e.file) affectedFiles.add(e.file);
-for (const e of propErrors) if (e.file) affectedFiles.add(e.file);
-
-console.log("");
-if (totalErrors === 0) {
-  console.log("OpenAPI annotation verification: no errors.");
-} else {
-  console.log(
-    `OpenAPI annotation verification: ${totalErrors} ${totalErrors === 1 ? "warning" : "warnings"} across ${affectedFiles.size} ${affectedFiles.size === 1 ? "file" : "files"} (non-blocking).`
-  );
+if (totalErrors > 0) {
+  printCliReport(result, inputs.versionMap, { skipStats: true });
 }
 
 if (process.env.GITHUB_STEP_SUMMARY) {

@@ -43,7 +43,7 @@ cat .env
 # ENDPOINT_MAP_PATH=./endpoint-map.json
 
 # 4. Run
-npm run update              # annotates operations
+npm run update:operations   # annotates operations
 npm run update:properties   # annotates schema properties
 ```
 
@@ -184,8 +184,8 @@ agrees with the child's 8.6 intro and Rule 2 cannot fire.
 When a schema (or property) is referenced from multiple endpoints (via `$ref`
 or `allOf`), the chosen introduction version is the **earliest** version seen
 across all consumers. The property is then annotated **unless every consumer
-endpoint's own introduction version equals that earliest version** — in which
-case all endpoint-level annotations already cover it.
+endpoint's own introduction version equals the property's earliest version**
+— in which case all endpoint-level annotations already cover it.
 
 Example — `element-instances.yaml#/components/schemas/AdvancedElementInstanceStateFilter`
 is referenced from seven endpoints. The `$exists` operator inside it was
@@ -220,12 +220,12 @@ Had every consumer endpoint also been introduced in 8.8, no property-level
 annotation would be written — each endpoint's own `x-added-in-version: '8.8'`
 would already cover the shared schema.
 
-### Rule 4 — Deduplicate by upstream location
+### Rule 4 — Deduplicate properties by upstream location
 
-Several bundled paths can resolve to the **same** node in the upstream
-multi-file YAMLs. Annotations are grouped by upstream `(file, path)` so each
-physical location is written exactly once, using the version chosen under
-Rule 3.
+Properties only. Several bundled property paths can resolve to the **same**
+node in the upstream multi-file YAMLs (via `$ref` / `allOf`). Property
+annotations are grouped by upstream `(file, path)` so each physical location
+is written exactly once, using the version chosen under Rule 3.
 
 ## Pipeline & npm scripts
 
@@ -240,35 +240,60 @@ runs the annotator/verifier against them.
 | `build:artefacts` | Convenience wrapper — runs both build steps in order. |
 | `update:operations` | `build:artefacts` + writes operation-level `x-added-in-version` into the YAMLs under `OCA_SPEC_PATH`. |
 | `update:properties` | `build:artefacts` + writes property-level `x-properties-added-in-version` (parent-list form) into the YAMLs under `OCA_SPEC_PATH`. Migrates any legacy parent-level `x-added-in-version` lists by deleting the old key and rewriting under the new one. |
-| `verify:specs` | `build:artefacts` + runs the local-developer verifier (`verify-specs.mjs`). Verbose, exits 0 on clean. |
-| `verify:specs:ci` | Runs the CI verifier (`verify-specs-ci.mjs`). **Does not** rebuild artefacts — assumes they exist (so CI can do the build once and reuse them). Always writes a Markdown report. |
+| `verify:specs` | `build:artefacts` + runs the local-developer verifier (`verify-specs.mjs`). Verbose, exits 1 on any error. Honors `LOG_DETAIL_X_ADDED_IN_VERSION=true` for the detail trailer. |
+| `verify:specs:ci` | Runs the non-blocking PR verifier (`verify-specs-ci.mjs`). **Always exits 0.** Does not rebuild artefacts (assumes they exist). Emits inline `::warning::` annotations + fix sections to stdout; no persisted report. |
+| `verify:specs:workflow` | Runs the scheduled/dispatch verifier (`verify-specs-workflow.mjs`). Prints the shared report and writes Markdown to `REPORT_PATH` (default `output/verify-report.md`). Exits 1 on errors. Honors `LOG_DETAIL_X_ADDED_IN_VERSION=true` for the detail trailer on both stdout and the persisted file. |
 
 Re-running any artefact build is a no-op once the target file exists; delete
 the file (or unset the path) to force a rebuild.
 
-### CI verifier (`verify:specs:ci`)
+### CI verifier (`verify:specs:ci`) — non-blocking PR check
 
-Same checks as `verify:specs` (operation-level + property-level annotations
-against the version-map), but tuned for GitHub Actions output:
+Same checks as `verify:specs`, but tuned to surface findings on PRs without
+blocking the merge queue:
 
-- On success: a single-line Markdown report with `**Status:** ✅`.
-- On failure: a numbered `## Rules broken` summary, then `## Operation
-  errors` / `## Property errors` sections with copy-pasteable YAML fix
-  snippets, then `## Detailed verification results` counts. Exits with code
-  1.
+- **Always exits 0.**
+- Prints a single status line first:
+  `❌ Found N incorrect x-added-in-version/x-properties-added-in-version across M files (non-blocking).`
+  (or `✅ OpenAPI annotation verification: no incorrect annotations.`)
+- Emits each finding as a GitHub Actions `::warning file=…,line=…::` under
+  `=== Inline PR annotations ===` so they render inline on the PR's
+  **Files changed** tab.
+- Follows up with `# Operation errors fix` / `# Property errors fix`
+  sections containing copy-pasteable YAML snippets.
+- Does **not** rebuild artefacts — assumes `endpoint-map.json` and
+  `version-map.json` exist (CI builds them once and reuses).
+- Optional env: `ANNOTATION_PATH_PREFIX` (default
+  `zeebe/gateway-protocol/src/main/proto/v2`; set empty for bare filenames),
+  `GITHUB_STEP_SUMMARY` (auto in GHA; appends a short Markdown summary).
 
-The script always writes its report as Markdown to `REPORT_PATH` (defaults
-to `output/verify-report.md` next to the script). The same content is also
-printed to stdout. CI consumes the file directly — no `tee`, no shell
-post-processing — so headings, lists, and inner ` ```yaml ` blocks render
-natively in the GitHub Actions job summary.
+### Where it runs in `camunda/camunda`
 
-The accompanying workflow lives at
-`.github/workflows/verify-openapi-annotations.yml` in `camunda/camunda` and:
+1. **Per-PR (non-blocking warnings)** — inline job
+   `openapi-x-added-in-version-check` in `.github/workflows/ci.yml`. Gated on
+   `detect-changes`'s `openapi-changes` output. Uses `verify:specs:ci`.
+2. **Daily + dispatch (Markdown report, blocking exit code)** —
+   `.github/workflows/verify-x-added-in-version-annotations.yml` runs nightly
+   at 05:00 UTC and on-demand against any branch/tag/SHA. Uses
+   `verify:specs:workflow`; writes `reports/verify_<ref>.md`, appends to the
+   job summary, and uploads it as an artifact.
 
-1. Checks out `camunda/camunda` at the requested ref.
-2. Clones this repo into a temp dir, runs `npm ci`, then
-   `npm run build:artefacts`.
-3. Runs `npm run verify:specs:ci` with `REPORT_PATH` pointing into a
-   workflow-controlled `reports/` directory.
-4. Appends the report to the run summary and uploads it as an artifact.
+Both workflows clone this repo into a temp dir, run `npm ci`, then
+`npm run build:artefacts`, then the relevant verify script with
+`OCA_SPEC_PATH` pointing at the host checkout's
+`zeebe/gateway-protocol/src/main/proto/v2`.
+
+### Environment variables
+
+| Var | Used by | Effect |
+|-----|---------|--------|
+| `OCA_SPEC_PATH` | all | Path to multi-file OpenAPI specs. **Required.** |
+| `VERSION_MAP_PATH` | all | Path to `version-map.json`. **Required.** |
+| `ENDPOINT_MAP_PATH` | all | Path to `endpoint-map.json`. **Required.** |
+| `CAMUNDA_REF` | `build:*` | Ref of `camunda/camunda` to bootstrap from. |
+| `RETURN_OF_API_REF` | `build:version-map` | Ref of `return-of-api-added-in-analysis`. |
+| `REPORT_PATH` | `verify:specs:workflow` | Output path for persisted Markdown report. Default `output/verify-report.md`. |
+| `LOG_DETAIL_X_ADDED_IN_VERSION=true` | `verify:specs`, `verify:specs:workflow` | Appends the detail trailer (counts + broken rules). Only emitted when there are errors. |
+| `ANNOTATION_PATH_PREFIX` | `verify:specs:ci` | Prefix for `::warning file=…::` paths. |
+| `GITHUB_STEP_SUMMARY` | `verify:specs:ci` | Auto in GHA; appends short Markdown summary. |
+| `CROSS_REPO_TOKEN` / `GITHUB_TOKEN` | CI workflows | Used by `insteadOf` git rewrite for transitive clones. |
