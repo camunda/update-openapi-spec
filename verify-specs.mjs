@@ -702,11 +702,23 @@ function appendDetailSection(emit, result, versionMap) {
  *
  * @param {object} result    return value of `verifySpecs()`
  * @param {object} versionMap
- * @param {{ includeDetail?: boolean }} [opts]
+ * @param {{ includeDetail?: boolean, summaryOnly?: boolean, skipStats?: boolean }} [opts]
  *   includeDetail — when true, appends the "Detailed verification results
  *   analysis" trailer (rule breakdown + counts).
+ *   summaryOnly  — when true, emits only a single status line (no headers,
+ *   per-error listings, or fix sections). Intended for the non-blocking CI
+ *   wrapper, which renders findings via inline PR annotations instead.
+ *   skipStats    — when true, omits the "# x-added-in-version Error Stats"
+ *   header and the per-error bullet listings, but keeps the "Operation
+ *   errors fix" and "Property errors fix" sections. Used by the CI wrapper
+ *   so the fix guidance stays in the log without duplicating the stats
+ *   block already covered by the inline annotations.
  */
-export function buildReport(result, versionMap, { includeDetail = false } = {}) {
+export function buildReport(
+  result,
+  versionMap,
+  { includeDetail = false, summaryOnly = false, skipStats = false } = {}
+) {
   const { opErrors, extraOps, propErrors } = result;
   const total = opErrors.length + extraOps.length + propErrors.length;
   const out = [];
@@ -717,51 +729,60 @@ export function buildReport(result, versionMap, { includeDetail = false } = {}) 
   for (const e of extraOps) if (e.file) affectedFiles.add(e.file);
   for (const e of propErrors) if (e.file) affectedFiles.add(e.file);
 
-  if (total === 0) {
-    emit("# x-added-in-version verification");
-    emit("");
-    emit("All checks passed! No errors across all properties and operations in the spec.");
-    if (includeDetail) {
-      emit("");
-      appendDetailSection(emit, result, versionMap);
+  if (summaryOnly) {
+    if (total === 0) {
+      emit("✅ OpenAPI annotation verification: no incorrect annotations.");
+    } else {
+      emit(
+        `❌ Found ${total} incorrect x-added-in-version/x-properties-added-in-version across ${affectedFiles.size} ${affectedFiles.size === 1 ? "file" : "files"} (non-blocking).`
+      );
     }
     return out.join("\n");
   }
 
-  // ── Error stats ───────────────────────────────────────────────────────────
-  emit("# x-added-in-version Error Stats");
-  emit("");
-  emit(
-    `**Status:** ❌ Found ${total} ${total === 1 ? "error" : "errors"} across ${affectedFiles.size} ${affectedFiles.size === 1 ? "file" : "files"}`
-  );
-  emit("");
-
-  if (opErrors.length || extraOps.length) {
-    emit("--- Operations ERRORS ---");
-    for (const e of opErrors) {
-      emit("  " + e.issue + ": " + (e.file ? e.file + " :: " : "") + e.op +
-        (e.expected ? " expected=" + e.expected : "") +
-        (e.actual ? " actual=" + e.actual : ""));
-    }
-    for (const e of extraOps) {
-      emit("  UNKNOWN_OPERATION_IN_YAML: " + e.file + " :: " + e.op +
-        (e.hasAnnotation ? " hasAnnotation=" + e.annotationValue : " noAnnotation"));
-    }
+  if (total === 0) {
+    emit("# x-added-in-version verification");
     emit("");
+    emit("All checks passed! No errors across all properties and operations in the spec.");
+    return out.join("\n");
   }
 
-  if (propErrors.length) {
-    emit("--- PROPERTY ERRORS ---");
-    for (const e of propErrors) {
-      const extras = [
-        e.expected ? "expected=" + e.expected : null,
-        e.actual ? "actual=" + e.actual : null,
-        e.suppressedBy ? "suppressedBy=" + e.suppressedBy : null,
-        e.intro && !e.expected ? "intro=" + e.intro : null,
-      ].filter(Boolean).join(" ");
-      emit("  " + e.issue + ": " + e.file + " :: " + e.path + (extras ? " " + extras : ""));
-    }
+  // ── Error stats ───────────────────────────────────────────────────────────
+  if (!skipStats) {
+    emit("# x-added-in-version Error Stats");
     emit("");
+    emit(
+      `**Status:** ❌ Found ${total} ${total === 1 ? "error" : "errors"} across ${affectedFiles.size} ${affectedFiles.size === 1 ? "file" : "files"}`
+    );
+    emit("");
+
+    if (opErrors.length || extraOps.length) {
+      emit("--- Operations ERRORS ---");
+      for (const e of opErrors) {
+        emit("  " + e.issue + ": " + (e.file ? e.file + " :: " : "") + e.op +
+          (e.expected ? " expected=" + e.expected : "") +
+          (e.actual ? " actual=" + e.actual : ""));
+      }
+      for (const e of extraOps) {
+        emit("  UNKNOWN_OPERATION_IN_YAML: " + e.file + " :: " + e.op +
+          (e.hasAnnotation ? " hasAnnotation=" + e.annotationValue : " noAnnotation"));
+      }
+      emit("");
+    }
+
+    if (propErrors.length) {
+      emit("--- PROPERTY ERRORS ---");
+      for (const e of propErrors) {
+        const extras = [
+          e.expected ? "expected=" + e.expected : null,
+          e.actual ? "actual=" + e.actual : null,
+          e.suppressedBy ? "suppressedBy=" + e.suppressedBy : null,
+          e.intro && !e.expected ? "intro=" + e.intro : null,
+        ].filter(Boolean).join(" ");
+        emit("  " + e.issue + ": " + e.file + " :: " + e.path + (extras ? " " + extras : ""));
+      }
+      emit("");
+    }
   }
 
   // ── Operation errors fix ─────────────────────────────────────────────────

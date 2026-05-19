@@ -7,8 +7,9 @@
  *
  *  - Always prints the shared report to stdout. Detailed analysis trailer
  *    is appended only when env `LOG_DETAIL_X_ADDED_IN_VERSION=true`.
- *  - Always writes the full report (with detail) to `REPORT_PATH` (defaults
- *    to `output/verify-report.md` next to this script).
+ *  - Always writes the report to `REPORT_PATH` (defaults to
+ *    `output/verify-report.md` next to this script). The detail trailer is
+ *    included only when `LOG_DETAIL_X_ADDED_IN_VERSION=true`.
  *  - Exits with code 1 when any error is found.
  */
 
@@ -24,20 +25,20 @@ import {
 } from "./verify-specs.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
-const includeDetailInCli =
+const includeDetail =
   String(process.env.LOG_DETAIL_X_ADDED_IN_VERSION ?? "").toLowerCase() === "true";
 
 const inputs = loadInputs();
 const result = verifySpecs(inputs);
 
 // Shared CLI output (identical to standalone + CI wrappers).
-printCliReport(result, inputs.versionMap, { includeDetail: includeDetailInCli });
+printCliReport(result, inputs.versionMap, { includeDetail });
 
-// Persisted Markdown report always includes the detail trailer.
+// Persisted Markdown report — same detail toggle as the CLI.
 const reportPath = resolve(
   process.env.REPORT_PATH ?? join(scriptDir, "output", "verify-report.md")
 );
-const reportText = buildReport(result, inputs.versionMap, { includeDetail: true });
+const reportText = buildReport(result, inputs.versionMap, { includeDetail });
 mkdirSync(dirname(reportPath), { recursive: true });
 writeFileSync(reportPath, reportText + "\n");
 
