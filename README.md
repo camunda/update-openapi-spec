@@ -39,8 +39,8 @@ npm install
 # 3. Configure .env (or export the variables)
 cat .env
 # OCA_SPEC_PATH=/path/to/camunda/zeebe/gateway-protocol/src/main/proto/v2
-# VERSION_MAP_PATH=./version-map.json
-# ENDPOINT_MAP_PATH=./endpoint-map.json
+# VERSION_MAP_PATH=./artefacts/version-map.json
+# ENDPOINT_MAP_PATH=./artefacts/endpoint-map.json
 
 # 4. Run
 npm run update:operations   # annotates operations

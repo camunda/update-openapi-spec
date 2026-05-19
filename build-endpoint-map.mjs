@@ -8,25 +8,20 @@
  * Env:
  *   CAMUNDA_REF        Git ref to fetch (default: "main")
  *   CAMUNDA_REPO_URL   Git repo URL (default: https://github.com/camunda/camunda.git)
- *   ENDPOINT_MAP_PATH  Output path (default: ./endpoint-map.json)
+ *   ENDPOINT_MAP_PATH  Output path (default: ./artefacts/endpoint-map.json)
  *
  * Usage:
  *   node build-endpoint-map.mjs
  */
 import "dotenv/config";
-import { existsSync, mkdtempSync, rmSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fetchAndBundle } from "camunda-schema-bundler";
 
 const ref = process.env.CAMUNDA_REF ?? "main";
 const repoUrl = process.env.CAMUNDA_REPO_URL ?? "https://github.com/camunda/camunda.git";
-const endpointMapPath = resolve(process.env.ENDPOINT_MAP_PATH ?? "./endpoint-map.json");
-
-if (existsSync(endpointMapPath)) {
-  console.log(`Skipping — ${endpointMapPath} already exists. Delete it to regenerate.`);
-  process.exit(0);
-}
+const endpointMapPath = resolve(process.env.ENDPOINT_MAP_PATH ?? "./artefacts/endpoint-map.json");
 
 const workDir = mkdtempSync(join(tmpdir(), "update-openapi-spec-bundle-"));
 const fetchedSpecDir = join(workDir, "spec");
@@ -48,6 +43,7 @@ try {
 
   // Copy bundler output to the configured location.
   const contents = readFileSync(bundlerEndpointMapPath, "utf-8");
+  mkdirSync(dirname(endpointMapPath), { recursive: true });
   writeFileSync(endpointMapPath, contents);
   console.log(`Wrote ${endpointMapPath}`);
 } finally {
