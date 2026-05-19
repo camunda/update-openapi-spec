@@ -5,7 +5,7 @@
   "scripts": {
     "build:endpoint-map": "node build-endpoint-map.mjs",
     "build:version-map": "node get-version-map.mjs",
-    "build:artefacts": "npm run build:endpoint-map && npm run build:version-map",
+    "build:artefacts": "node build-artefacts.mjs",
     "update:operations": "npm run build:artefacts && node update-specs-operations.mjs",
     "update:properties": "npm run build:artefacts && node update-specs-properties.mjs",
     "verify:specs": "npm run build:artefacts && node verify-specs.mjs",
